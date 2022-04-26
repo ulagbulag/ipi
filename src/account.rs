@@ -1,7 +1,5 @@
-use core::ops::{Deref, DerefMut};
-
 use anyhow::Result;
-use ed25519_dalek::{Keypair, PublicKey, Signature, Signer};
+use ed25519_dalek::{Keypair, PublicKey, Signature};
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GuarantorSigned<T> {
@@ -9,7 +7,7 @@ pub struct GuarantorSigned<T> {
     pub data: GuaranteeSigned<T>,
 }
 
-impl<T> Deref for GuarantorSigned<T> {
+impl<T> ::core::ops::Deref for GuarantorSigned<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -17,9 +15,27 @@ impl<T> Deref for GuarantorSigned<T> {
     }
 }
 
-impl<T> DerefMut for GuarantorSigned<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.data
+impl<T> Signer<GuaranteeSigned<T>> for GuarantorSigned<T>
+where
+    T: ::serde::Serialize,
+{
+    fn sign(account: &Account, data: GuaranteeSigned<T>) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(GuarantorSigned {
+            guarantor: account.sign(&data)?,
+            data,
+        })
+    }
+}
+
+impl<T> Verifier for GuarantorSigned<T>
+where
+    T: ::serde::Serialize,
+{
+    fn verify(&self) -> Result<()> {
+        self.guarantor.verify(&self.data)
     }
 }
 
@@ -29,7 +45,7 @@ pub struct GuaranteeSigned<T> {
     pub data: T,
 }
 
-impl<T> Deref for GuaranteeSigned<T> {
+impl<T> ::core::ops::Deref for GuaranteeSigned<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -37,31 +53,58 @@ impl<T> Deref for GuaranteeSigned<T> {
     }
 }
 
-impl<T> DerefMut for GuaranteeSigned<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.data
+impl<T> Signer<T> for GuaranteeSigned<T>
+where
+    T: ::serde::Serialize,
+{
+    fn sign(account: &Account, data: T) -> Result<Self>
+    where
+        Self: Sized,
+    {
+        Ok(Self {
+            guarantee: account.sign(&data)?,
+            data,
+        })
     }
+}
+
+impl<T> Verifier for GuaranteeSigned<T>
+where
+    T: ::serde::Serialize,
+{
+    fn verify(&self) -> Result<()> {
+        self.guarantee.verify(&self.data)
+    }
+}
+
+pub trait Signer<T>
+where
+    T: ::serde::Serialize,
+{
+    fn sign(account: &Account, data: T) -> Result<Self>
+    where
+        Self: Sized;
+}
+
+pub trait Verifier {
+    fn verify(&self) -> Result<()>;
 }
 
 #[derive(Clone, Debug, Eq, Serialize, Deserialize)]
 pub struct Identity {
-    pub public_key: PublicKey,
+    pub account: AccountRef,
     pub signature: Signature,
 }
 
 impl PartialEq for Identity {
     fn eq(&self, other: &Self) -> bool {
-        self.public_key == other.public_key && self.signature == other.signature
+        self.account == other.account && self.signature == other.signature
     }
 }
 
 impl PartialOrd for Identity {
     fn partial_cmp(&self, other: &Self) -> Option<::core::cmp::Ordering> {
-        match self
-            .public_key
-            .as_ref()
-            .partial_cmp(other.public_key.as_ref())
-        {
+        match self.account.partial_cmp(&other.account) {
             Some(::core::cmp::Ordering::Equal) => {}
             ord => return ord,
         }
@@ -73,55 +116,80 @@ impl PartialOrd for Identity {
 
 impl Ord for Identity {
     fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
-        self.public_key
-            .as_ref()
-            .cmp(other.public_key.as_ref())
+        self.account
+            .cmp(&other.account)
             .then(self.signature.as_ref().cmp(other.signature.as_ref()))
-    }
-}
-
-impl Identity {
-    fn sign<T>(keypair: &Keypair, data: &T) -> Result<Self>
-    where
-        T: ::serde::Serialize,
-    {
-        Ok(Self {
-            public_key: keypair.public,
-            signature: keypair.sign(&::bincode::serialize(data)?),
-        })
     }
 }
 
 impl ::core::hash::Hash for Identity {
     fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
-        self.public_key.as_ref().hash(state);
+        self.account.hash(state);
         self.signature.as_ref().hash(state);
+    }
+}
+
+impl Identity {
+    fn verify<T>(&self, data: &T) -> Result<()>
+    where
+        T: ::serde::Serialize,
+    {
+        use ed25519_dalek::Verifier;
+
+        let data = ::bincode::serialize(data)?;
+        self.account.public_key.verify(&data, &self.signature)?;
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Eq, Serialize, Deserialize)]
+pub struct AccountRef {
+    pub public_key: PublicKey,
+}
+
+impl PartialEq for AccountRef {
+    fn eq(&self, other: &Self) -> bool {
+        self.public_key == other.public_key
+    }
+}
+
+impl PartialOrd for AccountRef {
+    fn partial_cmp(&self, other: &Self) -> Option<::core::cmp::Ordering> {
+        self.public_key
+            .as_ref()
+            .partial_cmp(other.public_key.as_ref())
+    }
+}
+
+impl Ord for AccountRef {
+    fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
+        self.public_key.as_ref().cmp(other.public_key.as_ref())
+    }
+}
+
+impl ::core::hash::Hash for AccountRef {
+    fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
+        self.public_key.as_ref().hash(state);
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Account {
-    pub keypair: Keypair,
+    keypair: Keypair,
 }
 
 impl Account {
-    pub fn sign_guarantee<T>(&self, data: T) -> Result<GuaranteeSigned<T>>
+    pub(crate) fn sign<T>(&self, data: &T) -> Result<Identity>
     where
         T: ::serde::Serialize,
     {
-        Ok(GuaranteeSigned {
-            guarantee: Identity::sign(&self.keypair, &data)?,
-            data,
-        })
-    }
+        use ed25519_dalek::Signer;
 
-    pub fn sign_as_guarantor<T>(&self, data: GuaranteeSigned<T>) -> Result<GuarantorSigned<T>>
-    where
-        T: ::serde::Serialize,
-    {
-        Ok(GuarantorSigned {
-            guarantor: Identity::sign(&self.keypair, &data)?,
-            data,
+        Ok(Identity {
+            account: AccountRef {
+                public_key: self.keypair.public,
+            },
+            signature: self.keypair.sign(&::bincode::serialize(data)?),
         })
     }
 }
