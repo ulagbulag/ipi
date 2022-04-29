@@ -1,12 +1,12 @@
 use anyhow::bail;
-use chrono::{DateTime, Utc};
 
 use crate::{
-    account::{GuarantorSigned, Identity, Signer, Verifier},
-    value::{Nonce, Value},
+    account::{GuarantorSigned, Signer, Verifier},
+    metadata::Metadata,
+    value::Value,
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 #[repr(transparent)]
 pub struct CreditRating(pub GuarantorSigned<CreditRatingPayload>);
@@ -25,14 +25,7 @@ impl Verifier for CreditRating {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct CreditRatingPayload {
-    pub nonce: Nonce,
-    pub created_date: DateTime<Utc>,
-    pub expiration_date: DateTime<Utc>,
-    pub target: Option<Identity>,
-    pub value: Value,
-}
+pub type CreditRatingPayload = Metadata<Value>;
 
 impl Signer<Self> for CreditRatingPayload {
     fn sign(account: &crate::Account, mut data: Self) -> anyhow::Result<Self>

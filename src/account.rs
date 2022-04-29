@@ -1,7 +1,7 @@
 use anyhow::Result;
 use ed25519_dalek::{Keypair, PublicKey, Signature};
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GuarantorSigned<T> {
     pub guarantor: Identity,
     pub data: GuaranteeSigned<T>,
@@ -39,7 +39,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GuaranteeSigned<T> {
     pub guarantee: Identity,
     pub data: T,
@@ -90,7 +90,7 @@ pub trait Verifier {
     fn verify(&self) -> Result<()>;
 }
 
-#[derive(Clone, Debug, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Serialize, Deserialize)]
 pub struct Identity {
     pub account: AccountRef,
     pub signature: Signature,
@@ -142,7 +142,7 @@ impl Identity {
     }
 }
 
-#[derive(Clone, Debug, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Serialize, Deserialize)]
 pub struct AccountRef {
     pub public_key: PublicKey,
 }
