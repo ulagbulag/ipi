@@ -1,6 +1,8 @@
 use anyhow::Result;
 use ed25519_dalek::{Keypair, PublicKey, Signature};
 
+use crate::metadata::Metadata;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GuarantorSigned<T> {
     pub guarantor: Identity,
@@ -8,7 +10,7 @@ pub struct GuarantorSigned<T> {
 }
 
 impl<T> ::core::ops::Deref for GuarantorSigned<T> {
-    type Target = T;
+    type Target = GuaranteeSigned<T>;
 
     fn deref(&self) -> &Self::Target {
         &self.data
@@ -42,22 +44,22 @@ where
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct GuaranteeSigned<T> {
     pub guarantee: Identity,
-    pub data: T,
+    pub data: Metadata<T>,
 }
 
 impl<T> ::core::ops::Deref for GuaranteeSigned<T> {
-    type Target = T;
+    type Target = Metadata<T>;
 
     fn deref(&self) -> &Self::Target {
         &self.data
     }
 }
 
-impl<T> Signer<T> for GuaranteeSigned<T>
+impl<T> Signer<Metadata<T>> for GuaranteeSigned<T>
 where
     T: ::serde::Serialize,
 {
-    fn sign(account: &Account, data: T) -> Result<Self>
+    fn sign(account: &Account, data: Metadata<T>) -> Result<Self>
     where
         Self: Sized,
     {

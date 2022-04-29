@@ -1,8 +1,5 @@
-use anyhow::bail;
-
 use crate::{
-    account::{GuarantorSigned, Signer, Verifier},
-    metadata::Metadata,
+    account::{GuarantorSigned, Verifier},
     value::Value,
 };
 
@@ -25,18 +22,7 @@ impl Verifier for CreditRating {
     }
 }
 
-pub type CreditRatingPayload = Metadata<Value>;
-
-impl Signer<Self> for CreditRatingPayload {
-    fn sign(account: &crate::Account, mut data: Self) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        if data.target.is_some() {
-            bail!("Already signed");
-        }
-
-        data.target.replace(account.sign(&data)?);
-        Ok(data)
-    }
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct CreditRatingPayload {
+    pub value: Value,
 }
