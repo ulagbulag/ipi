@@ -1,8 +1,15 @@
-use crate::{path::Path, ty::Type};
-
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Data {
-    pub path: Path,
+#[repr(C)]
+pub struct Data<Type = crate::ty::Type, Inner = crate::path::Path> {
     #[serde(rename = "type")]
     pub ty: Type,
+    pub inner: Inner,
+}
+
+impl<Type, Inner> ::core::ops::Deref for Data<Type, Inner> {
+    type Target = Inner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }

@@ -1,4 +1,3 @@
-use anyhow::bail;
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
@@ -8,6 +7,7 @@ use crate::{
 };
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Metadata<T> {
     pub nonce: Nonce,
     pub created_date: DateTime<Utc>,

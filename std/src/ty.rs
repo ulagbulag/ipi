@@ -1,4 +1,4 @@
-use ipi_core::{generic_array::typenum::U32, value::String};
+use ipi_core::value::String;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Type {
@@ -16,7 +16,8 @@ impl ::core::ops::Deref for Type {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct TypeLeaf {
-    pub name: String<U32>,
-    pub desc: Option<String<U32>>,
+    pub name: String<32>,
+    pub desc: String<32>,
 }

@@ -4,6 +4,7 @@ use ed25519_dalek::{Keypair, PublicKey, Signature};
 use crate::metadata::Metadata;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct GuarantorSigned<T> {
     pub guarantor: Identity,
     pub data: GuaranteeSigned<T>,
@@ -42,6 +43,7 @@ where
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[repr(C)]
 pub struct GuaranteeSigned<T> {
     pub guarantee: Identity,
     pub data: Metadata<T>,
@@ -93,6 +95,7 @@ pub trait Verifier {
 }
 
 #[derive(Copy, Clone, Debug, Eq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Identity {
     pub account: AccountRef,
     pub signature: Signature,
@@ -145,6 +148,7 @@ impl Identity {
 }
 
 #[derive(Copy, Clone, Debug, Eq, Serialize, Deserialize)]
+#[repr(C)]
 pub struct AccountRef {
     pub public_key: PublicKey,
 }
@@ -176,6 +180,7 @@ impl ::core::hash::Hash for AccountRef {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[repr(C)]
 pub struct Account {
     keypair: Keypair,
 }
