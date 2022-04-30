@@ -1,5 +1,6 @@
 use fixed::{traits::ToFixed, types::U0F32};
 use generic_array::GenericArray;
+use num_traits::{FromPrimitive, ToPrimitive};
 use serde::{Deserialize, Serialize};
 use serde_big_array::BigArray;
 use sha2::{digest::OutputSizeUser, Sha256VarCore};
@@ -33,31 +34,43 @@ impl ::core::ops::Deref for Nonce {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[repr(C)]
-pub struct String<const U: usize> {
+pub struct String<const U: usize = 256, Len = u8> {
     #[serde(with = "BigArray")]
     pub buf: [u8; U],
-    pub len: u64,
+    pub len: Len,
 }
 
-impl<const U: usize> TryFrom<::std::string::String> for String<U> {
-    type Error = anyhow::Error;
+impl<const U: usize, Len> TryFrom<::std::string::String> for String<U, Len>
+where
+    Len: FromPrimitive,
+{
+    type Error = ::anyhow::Error;
 
     fn try_from(value: ::std::string::String) -> Result<Self, Self::Error> {
         let buf: [u8; U] = value
             .into_bytes()
             .try_into()
             .or_else(|_| bail!("Buffer Overflow"))?;
-        let len = buf.len() as u64;
+        let len = Len::from_usize(buf.len()).ok_or_else(|| anyhow!("Buffer Overflow"))?;
 
         Ok(Self { buf, len })
     }
 }
 
-impl<'a, const U: usize> TryFrom<&'a String<U>> for &'a str {
-    type Error = ::core::str::Utf8Error;
+impl<'a, const U: usize, Len> TryFrom<&'a String<U, Len>> for &'a str
+where
+    Len: ToPrimitive,
+{
+    type Error = ::anyhow::Error;
 
-    fn try_from(value: &'a String<U>) -> Result<Self, Self::Error> {
-        ::core::str::from_utf8(&value.buf[..value.len as usize])
+    fn try_from(value: &'a String<U, Len>) -> Result<Self, Self::Error> {
+        ::core::str::from_utf8(
+            &value.buf[..value
+                .len
+                .to_usize()
+                .ok_or_else(|| anyhow!("Buffer Overflow"))?],
+        )
+        .map_err(Into::into)
     }
 }
 
