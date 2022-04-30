@@ -1,6 +1,6 @@
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[repr(C)]
-pub struct Data<Type = crate::ty::Type, Inner = crate::path::Path> {
+pub struct Data<Type = crate::ty_data::TypeData, Inner = crate::path::Path> {
     #[serde(rename = "type")]
     pub ty: Type,
     pub inner: Inner,
