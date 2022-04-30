@@ -1,12 +1,8 @@
 #[macro_use]
 extern crate serde;
+pub extern crate generic_array;
 
-mod account;
-mod credit;
-mod metadata;
-mod value;
-
-pub use self::account::*;
-pub use self::credit::*;
-pub use self::metadata::*;
-pub use self::value::*;
+pub mod account;
+pub mod credit;
+pub mod metadata;
+pub mod value;

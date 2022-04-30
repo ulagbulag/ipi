@@ -28,7 +28,7 @@ impl<T> Signer<Self> for Metadata<T>
 where
     T: Serialize,
 {
-    fn sign(account: &crate::Account, mut data: Self) -> anyhow::Result<Self>
+    fn sign(account: &crate::account::Account, mut data: Self) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
