@@ -1,2 +1,2 @@
 [workspace]
-members = ["core", "std"]
+members = ["core", "std", "std/derive"]

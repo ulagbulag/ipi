@@ -1,15 +1,19 @@
-use rkyv::Serialize;
+use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
     account::{Identity, Signer},
     signature::SignatureSerializer,
-    value::{DateTime, Nonce},
+    value::{chrono::DateTime, nonce::Nonce},
 };
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[repr(C)]
+#[archive(bound(archive = "
+    T: Archive,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+"))]
+#[archive_attr(derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Metadata<T> {
     pub nonce: Nonce,
     pub created_date: DateTime,
@@ -28,7 +32,9 @@ impl<T> ::core::ops::Deref for Metadata<T> {
 
 impl<T> Signer<Self> for Metadata<T>
 where
-    T: Serialize<SignatureSerializer>,
+    T: Archive + Serialize<SignatureSerializer>,
+    <T as Archive>::Archived:
+        Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
 {
     fn sign(account: &crate::account::Account, mut data: Self) -> anyhow::Result<Self>
     where

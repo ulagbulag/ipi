@@ -1,12 +1,14 @@
+use rkyv::{Archive, Deserialize, Serialize};
+
 use crate::{
     account::{GuarantorSigned, Verifier},
-    value::Value,
+    value::primitives::U64,
 };
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[repr(transparent)]
+#[archive_attr(derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct CreditRating(pub GuarantorSigned<CreditRatingPayload>);
 
 impl ::core::ops::Deref for CreditRating {
@@ -29,5 +31,5 @@ impl Verifier for CreditRating {
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct CreditRatingPayload {
-    pub value: Value,
+    pub value: U64,
 }

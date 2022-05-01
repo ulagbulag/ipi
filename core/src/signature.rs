@@ -3,7 +3,6 @@ use rkyv::{ser::serializers::AllocSerializer, Archive, Deserialize, Fallible, Se
 pub type SignatureSerializer = AllocSerializer<64>;
 
 #[derive(Copy, Clone, Debug, Eq)]
-#[repr(transparent)]
 pub struct Signature(pub(crate) ::ed25519_dalek::Signature);
 
 impl ::core::ops::Deref for Signature {
@@ -20,9 +19,21 @@ impl PartialEq for Signature {
     }
 }
 
+impl PartialEq<Signature> for [u8; 64] {
+    fn eq(&self, other: &Signature) -> bool {
+        self == other.0.as_ref()
+    }
+}
+
 impl PartialOrd for Signature {
     fn partial_cmp(&self, other: &Self) -> Option<::core::cmp::Ordering> {
         self.0.as_ref().partial_cmp(other.0.as_ref())
+    }
+}
+
+impl PartialOrd<Signature> for [u8; 64] {
+    fn partial_cmp(&self, other: &Signature) -> Option<::core::cmp::Ordering> {
+        self.as_ref().partial_cmp(other.0.as_ref())
     }
 }
 
@@ -66,7 +77,6 @@ impl<D: Fallible + ?Sized> Deserialize<Signature, D> for <Signature as Archive>:
 }
 
 #[derive(Copy, Clone, Debug, Eq)]
-#[repr(transparent)]
 pub struct PublicKey(pub(crate) ::ed25519_dalek::PublicKey);
 
 impl ::core::ops::Deref for PublicKey {
@@ -83,9 +93,21 @@ impl PartialEq for PublicKey {
     }
 }
 
+impl PartialEq<PublicKey> for [u8; 32] {
+    fn eq(&self, other: &PublicKey) -> bool {
+        self == other.0.as_ref()
+    }
+}
+
 impl PartialOrd for PublicKey {
     fn partial_cmp(&self, other: &Self) -> Option<::core::cmp::Ordering> {
         self.0.as_ref().partial_cmp(other.0.as_ref())
+    }
+}
+
+impl PartialOrd<PublicKey> for [u8; 32] {
+    fn partial_cmp(&self, other: &PublicKey) -> Option<::core::cmp::Ordering> {
+        self.as_ref().partial_cmp(other.0.as_ref())
     }
 }
 
@@ -129,7 +151,6 @@ impl<D: Fallible + ?Sized> Deserialize<PublicKey, D> for <PublicKey as Archive>:
 }
 
 #[derive(Debug)]
-#[repr(transparent)]
 pub struct Keypair(pub(crate) ::ed25519_dalek::Keypair);
 
 impl ::core::ops::Deref for Keypair {
@@ -137,6 +158,18 @@ impl ::core::ops::Deref for Keypair {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl PartialEq<Keypair> for [u8; 64] {
+    fn eq(&self, other: &Keypair) -> bool {
+        self == &other.0.to_bytes()
+    }
+}
+
+impl PartialOrd<Keypair> for [u8; 64] {
+    fn partial_cmp(&self, other: &Keypair) -> Option<::core::cmp::Ordering> {
+        self.partial_cmp(&other.0.to_bytes())
     }
 }
 

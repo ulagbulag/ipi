@@ -1,8 +1,15 @@
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[repr(C)]
-pub struct Data<Type = crate::ty_data::TypeData, Inner = crate::path::Path> {
-    #[serde(rename = "type")]
-    pub ty: Type,
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
+#[archive(bound(archive = "
+    <Class as ::rkyv::Archive>::Archived: ::core::fmt::Debug + PartialEq,
+    <Inner as ::rkyv::Archive>::Archived: ::core::fmt::Debug + PartialEq,
+"))]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(Debug, PartialEq))]
+
+pub struct Data<Class = crate::class_data::ClassData, Inner = crate::path::Path> {
+    pub class: Class,
     pub inner: Inner,
 }
 

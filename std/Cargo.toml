@@ -5,13 +5,22 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
-name = "ipi_std"
-crate-type = ["cdylib"]
+[features]
+default = ["derive"]
+derive = ["ipi-std-derive"]
 
 [dependencies]
 ipi-core = { path = "../core" }
+ipi-std-derive = { path = "./derive", optional = true }
 
 async-trait = "0.1"
-serde = { version = "1.0", features = ["derive"] }
 futures = "0.3"
+rkyv = "0.7"
+
+[dev-dependencies]
+bytecheck = "0.6"
+
+[[test]]
+name = "ty_derive_simple"
+path = "tests/ty_derive_simple.rs"
+required-features = ["derive", "rkyv/validation"]
