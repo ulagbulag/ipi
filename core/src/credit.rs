@@ -3,8 +3,9 @@ use crate::{
     value::Value,
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[serde(transparent)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
 #[repr(transparent)]
 pub struct CreditRating(pub GuarantorSigned<CreditRatingPayload>);
 
@@ -22,7 +23,11 @@ impl Verifier for CreditRating {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
+#[archive(compare(PartialEq, PartialOrd))]
+#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct CreditRatingPayload {
     pub value: Value,
 }

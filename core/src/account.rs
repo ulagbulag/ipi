@@ -1,9 +1,14 @@
 use anyhow::Result;
-use ed25519_dalek::{Keypair, PublicKey, Signature};
+use rkyv::Serialize;
 
-use crate::metadata::Metadata;
+use crate::{
+    metadata::Metadata,
+    signature::{Keypair, PublicKey, Signature, SignatureSerializer},
+};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
 #[repr(C)]
 pub struct GuarantorSigned<T> {
     pub guarantor: Identity,
@@ -20,7 +25,7 @@ impl<T> ::core::ops::Deref for GuarantorSigned<T> {
 
 impl<T> Signer<GuaranteeSigned<T>> for GuarantorSigned<T>
 where
-    T: ::serde::Serialize,
+    T: Serialize<SignatureSerializer>,
 {
     fn sign(account: &Account, data: GuaranteeSigned<T>) -> Result<Self>
     where
@@ -35,14 +40,16 @@ where
 
 impl<T> Verifier for GuarantorSigned<T>
 where
-    T: ::serde::Serialize,
+    T: Serialize<SignatureSerializer>,
 {
     fn verify(&self) -> Result<()> {
         self.guarantor.verify(&self.data)
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
 #[repr(C)]
 pub struct GuaranteeSigned<T> {
     pub guarantee: Identity,
@@ -59,7 +66,7 @@ impl<T> ::core::ops::Deref for GuaranteeSigned<T> {
 
 impl<T> Signer<Metadata<T>> for GuaranteeSigned<T>
 where
-    T: ::serde::Serialize,
+    T: Serialize<SignatureSerializer>,
 {
     fn sign(account: &Account, data: Metadata<T>) -> Result<Self>
     where
@@ -74,7 +81,7 @@ where
 
 impl<T> Verifier for GuaranteeSigned<T>
 where
-    T: ::serde::Serialize,
+    T: Serialize<SignatureSerializer>,
 {
     fn verify(&self) -> Result<()> {
         self.guarantee.verify(&self.data)
@@ -83,7 +90,7 @@ where
 
 pub trait Signer<T>
 where
-    T: ::serde::Serialize,
+    T: Serialize<SignatureSerializer>,
 {
     fn sign(account: &Account, data: T) -> Result<Self>
     where
@@ -94,7 +101,7 @@ pub trait Verifier {
     fn verify(&self) -> Result<()>;
 }
 
-#[derive(Copy, Clone, Debug, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Archive, Serialize, Deserialize)]
 #[repr(C)]
 pub struct Identity {
     pub account: AccountRef,
@@ -137,17 +144,17 @@ impl ::core::hash::Hash for Identity {
 impl Identity {
     fn verify<T>(&self, data: &T) -> Result<()>
     where
-        T: ::serde::Serialize,
+        T: Serialize<SignatureSerializer>,
     {
         use ed25519_dalek::Verifier;
 
-        let data = ::bincode::serialize(data)?;
+        let data = ::rkyv::to_bytes::<_, 64>(data)?;
         self.account.public_key.verify(&data, &self.signature)?;
         Ok(())
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Archive, Serialize, Deserialize)]
 #[repr(C)]
 pub struct AccountRef {
     pub public_key: PublicKey,
@@ -179,7 +186,7 @@ impl ::core::hash::Hash for AccountRef {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 #[repr(C)]
 pub struct Account {
     keypair: Keypair,
@@ -188,15 +195,15 @@ pub struct Account {
 impl Account {
     pub(crate) fn sign<T>(&self, data: &T) -> Result<Identity>
     where
-        T: ::serde::Serialize,
+        T: Serialize<SignatureSerializer>,
     {
         use ed25519_dalek::Signer;
 
         Ok(Identity {
             account: AccountRef {
-                public_key: self.keypair.public,
+                public_key: PublicKey(self.keypair.public),
             },
-            signature: self.keypair.sign(&::bincode::serialize(data)?),
+            signature: Signature(self.keypair.sign(&::rkyv::to_bytes(data)?)),
         })
     }
 }

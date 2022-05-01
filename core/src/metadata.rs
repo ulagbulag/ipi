@@ -1,17 +1,19 @@
-use chrono::{DateTime, Utc};
-use serde::Serialize;
+use rkyv::Serialize;
 
 use crate::{
     account::{Identity, Signer},
-    value::Nonce,
+    signature::SignatureSerializer,
+    value::{DateTime, Nonce},
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
 #[repr(C)]
 pub struct Metadata<T> {
     pub nonce: Nonce,
-    pub created_date: DateTime<Utc>,
-    pub expiration_date: DateTime<Utc>,
+    pub created_date: DateTime,
+    pub expiration_date: DateTime,
     pub target: Option<Identity>,
     pub data: T,
 }
@@ -26,7 +28,7 @@ impl<T> ::core::ops::Deref for Metadata<T> {
 
 impl<T> Signer<Self> for Metadata<T>
 where
-    T: Serialize,
+    T: Serialize<SignatureSerializer>,
 {
     fn sign(account: &crate::account::Account, mut data: Self) -> anyhow::Result<Self>
     where
