@@ -1,2 +1,18 @@
-[workspace]
-members = ["core", "std", "std/derive"]
+[package]
+name = "ipi"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+bytecheck = "0.6"
+chrono = "0.4"
+ed25519-dalek = "1.0"
+fixed = "1.15"
+generic-array = "0.14"
+language-tags = "0.3"
+rkyv = { version = "0.7", features = ["archive_be"] }
+sha2 = "0.10"
+uuid = "1.0"
