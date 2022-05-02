@@ -266,7 +266,7 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
                             }
                         }
 
-                        impl ::ipi::class::Class for Cursor {
+                        impl #impl_generics_for_class ::ipi::class::Class for Cursor {
                             type Cursor = Self;
 
                             fn __class_name() -> ::ipi::class::metadata::ClassName {
@@ -288,7 +288,7 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
                             }
                         }
 
-                        impl ::ipi::object::Object for Cursor {
+                        impl #impl_generics_for_object ::ipi::object::Object for Cursor {
                             type Cursor = Self;
 
                             fn __object_name(&self) -> Cow<::ipi::class::metadata::ClassName> {

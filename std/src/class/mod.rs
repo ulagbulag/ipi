@@ -1,6 +1,5 @@
 pub mod cursor;
 pub mod metadata;
-pub mod primitives;
 
 pub trait Class {
     type Cursor: ::core::fmt::Debug + Default;
@@ -35,7 +34,7 @@ pub trait Class {
 
 impl<T> Class for &T
 where
-    T: Class,
+    T: ?Sized + Class,
 {
     type Cursor = <T as Class>::Cursor;
 

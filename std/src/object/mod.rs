@@ -1,5 +1,3 @@
-pub mod primitives;
-
 use std::borrow::Cow;
 
 pub trait Object {
@@ -24,7 +22,7 @@ pub trait Object {
 
 impl<T> Object for &T
 where
-    T: Object,
+    T: ?Sized + Object,
 {
     type Cursor = <T as Object>::Cursor;
 
