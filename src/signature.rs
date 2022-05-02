@@ -1,3 +1,4 @@
+use base58::ToBase58;
 use rkyv::{ser::serializers::AllocSerializer, Archive, Deserialize, Fallible, Serialize};
 
 pub type SignatureSerializer = AllocSerializer<64>;
@@ -46,6 +47,12 @@ impl Ord for Signature {
 impl ::core::hash::Hash for Signature {
     fn hash<H: ::core::hash::Hasher>(&self, state: &mut H) {
         self.0.as_ref().hash(state);
+    }
+}
+
+impl ToString for Signature {
+    fn to_string(&self) -> String {
+        self.0.as_ref().to_base58()
     }
 }
 
@@ -123,6 +130,12 @@ impl ::core::hash::Hash for PublicKey {
     }
 }
 
+impl ToString for PublicKey {
+    fn to_string(&self) -> String {
+        self.0.as_ref().to_base58()
+    }
+}
+
 impl Archive for PublicKey {
     type Archived = <[u8; 32] as Archive>::Archived;
     type Resolver = <[u8; 32] as Archive>::Resolver;
@@ -170,6 +183,12 @@ impl PartialEq<Keypair> for [u8; 64] {
 impl PartialOrd<Keypair> for [u8; 64] {
     fn partial_cmp(&self, other: &Keypair) -> Option<::core::cmp::Ordering> {
         self.partial_cmp(&other.0.to_bytes())
+    }
+}
+
+impl ToString for Keypair {
+    fn to_string(&self) -> String {
+        self.0.to_bytes().to_base58()
     }
 }
 
