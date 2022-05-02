@@ -1,6 +1,6 @@
 use ipi_core::value::{text::Text, ValueType};
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
 #[archive(bound(serialize = "
     __S: ::rkyv::ser::ScratchSpace + ::rkyv::ser::Serializer,
 "))]
@@ -9,7 +9,7 @@ use ipi_core::value::{text::Text, ValueType};
 pub struct ClassMetadata {
     pub leaf: ClassLeaf,
     #[omit_bounds]
-    pub children: Vec<ClassMetadata>,
+    pub children: Option<Vec<ClassMetadata>>,
 }
 
 impl ::core::ops::Deref for ClassMetadata {
@@ -20,22 +20,14 @@ impl ::core::ops::Deref for ClassMetadata {
     }
 }
 
-#[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
-)]
-#[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(CheckBytes, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
 pub struct ClassLeaf {
     pub name: ClassName,
     pub doc: ClassDoc,
     pub ty: ValueType,
 }
 
-impl ::core::fmt::Display for ClassLeaf {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-        ::core::fmt::Display::fmt(&self.name, f)
-    }
-}
-
-pub type ClassName = Text<32>;
-pub type ClassDoc = Text<256>;
+pub type ClassName = Text;
+pub type ClassDoc = Option<Text>;

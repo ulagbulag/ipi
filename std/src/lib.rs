@@ -1,5 +1,3 @@
-#![feature(trivial_bounds)]
-
 #[macro_use]
 extern crate async_trait;
 #[macro_use]

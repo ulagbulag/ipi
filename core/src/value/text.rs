@@ -1,76 +1,99 @@
 use bytecheck::CheckBytes;
-use num_traits::ToPrimitive;
-use rkyv::{Archive, Deserialize, Serialize};
+use rkyv::{ser::Serializer, string::ArchivedString, Archive, Deserialize, Fallible, Serialize};
 
-use super::string::String;
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize)]
-#[archive(bound(archive = "
-    <String<U, Len> as Archive>::Archived: Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
-",))]
-#[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(CheckBytes, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
-pub struct Text<const U: usize = 256, Len = u8> {
-    pub msg: String<U, Len>,
+#[derive(Clone, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
+pub struct Text {
+    pub msg: String,
     pub lang: LanguageTag,
 }
 
-impl<const U: usize, Len> ::core::fmt::Debug for Text<U, Len>
-where
-    Len: ToPrimitive,
-{
+impl ::core::fmt::Debug for Text {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::Debug::fmt(&self.msg, f)
     }
 }
 
-impl<const U: usize, Len> ::core::fmt::Display for Text<U, Len>
-where
-    Len: ToPrimitive,
-{
+impl ::core::fmt::Display for Text {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::Display::fmt(&self.msg, f)
     }
 }
 
-impl<const U: usize, Len> Text<U, Len> {
-    pub fn with_en_us(msg: String<U, Len>) -> Self {
+impl Text {
+    pub fn with_en_us(msg: impl ToString) -> Self {
         Self {
-            msg,
+            msg: msg.to_string(),
             lang: LanguageTag::new_en_us(),
         }
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize)]
-#[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
-pub struct LanguageTag(String<5, u8>);
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct LanguageTag(::language_tags::LanguageTag);
 
-impl TryFrom<&str> for LanguageTag {
-    type Error = ::anyhow::Error;
+impl ::core::str::FromStr for LanguageTag {
+    type Err = ::language_tags::ParseError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        use ::core::str::FromStr;
-
-        ::language_tags::LanguageTag::from_str(value)
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        ::language_tags::LanguageTag::from_str(s)
             .map_err(Into::into)
-            .map(|e| e.to_string())
-            .and_then(TryInto::try_into)
             .map(Self)
     }
 }
 
 impl ::core::ops::Deref for LanguageTag {
-    type Target = String<5, u8>;
+    type Target = ::language_tags::LanguageTag;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
+impl PartialEq<LanguageTag> for ArchivedString {
+    fn eq(&self, other: &LanguageTag) -> bool {
+        self.as_ref() == other.0.as_str()
+    }
+}
+
+impl PartialOrd<LanguageTag> for ArchivedString {
+    fn partial_cmp(&self, other: &LanguageTag) -> Option<::core::cmp::Ordering> {
+        self.as_ref().partial_cmp(other.0.as_str())
+    }
+}
+
+impl Archive for LanguageTag {
+    type Archived = <String as Archive>::Archived;
+    type Resolver = <String as Archive>::Resolver;
+
+    #[inline]
+    unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
+        self.0.to_string().resolve(pos, resolver, out)
+    }
+}
+
+impl<S: Fallible + ?Sized> Serialize<S> for LanguageTag
+where
+    S: Serializer,
+{
+    #[inline]
+    fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
+        self.0.to_string().serialize(serializer)
+    }
+}
+
+impl<D: Fallible + ?Sized> Deserialize<LanguageTag, D> for <LanguageTag as Archive>::Archived {
+    #[inline]
+    fn deserialize(&self, deserializer: &mut D) -> Result<LanguageTag, D::Error> {
+        Deserialize::<String, D>::deserialize(self, deserializer)
+            // FIXME: handle chrono input errors
+            .map(|ref e| e.parse().unwrap())
+    }
+}
+
 impl LanguageTag {
     pub fn new_en_us() -> Self {
-        "en-us".try_into().unwrap()
+        "en-us".parse().unwrap()
     }
 }

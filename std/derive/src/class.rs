@@ -126,8 +126,10 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
         syn::Data::Struct(s) => match &s.fields {
             syn::Fields::Named(FieldsNamed { named: fields, .. }) => {
                 // Add a bound `T: Class` to every type parameter T.
-                let generics_for_class = add_trait_bounds(generics);
+                let generics_for_class = add_trait_bounds_for_class(&generics);
+                let generics_for_object = add_trait_bounds_for_object(&generics);
                 let (impl_generics_for_class, ty_generics, where_clause_for_class) = generics_for_class.split_for_impl();
+                let (impl_generics_for_object, _, where_clause_for_object) = generics_for_object.split_for_impl();
 
                 let fields  = fields.iter().filter_map(|f| {
                     let ident = f.ident.as_ref()?;
@@ -138,16 +140,19 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
 
                 // parse children
                 let children = fields.clone().map(|(_, ty)| {
-                    quote! { <#ty as ::ipi::class::Class>::__class_metadata()? }
+                    quote! { <#ty as ::ipi::class::Class>::__class_metadata() }
                 });
 
                 // parse cursor methods
                 let cursor_methods = fields.clone().map(|(ident, ty)| {
                     quote! {
-                        pub fn #ident(self) -> Result<<#ty as ::ipi::class::Class>::Cursor> {
+                        pub fn #ident(self) -> <#ty as ::ipi::class::Class>::Cursor {
                             let mut data = self.0;
-                            data.push(<#ty as ::ipi::class::Class>::__class_metadata_leaf()?);
-                            Ok(data.into())
+                            data.push_en_us(
+                                stringify!(#ident),
+                                <#ty as ::ipi::class::Class>::__class_metadata_leaf(),
+                            );
+                            data.into()
                         }
                     }
                 });
@@ -157,19 +162,16 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
                     const _: () = {
                         use ::std::borrow::Cow;
 
-                        use ::ipi::{
-                            class::cursor::ClassCursorData,
-                            core::anyhow::Result,
-                        };
+                        use ::ipi::class::cursor::ClassCursorData;
 
                         impl #impl_generics_for_class ::ipi::class::Class for #ident #ty_generics #where_clause_for_class {
                             type Cursor = Cursor;
 
-                            fn __class_name() -> Result<::ipi::class::metadata::ClassName> {
+                            fn __class_name() -> ::ipi::class::metadata::ClassName {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_name()
                             }
 
-                            fn __class_doc() -> Result<::ipi::class::metadata::ClassDoc> {
+                            fn __class_doc() -> ::ipi::class::metadata::ClassDoc {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_doc()
                             }
 
@@ -177,59 +179,61 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_value_ty()
                             }
 
-                            fn __class_children() -> Result<Vec<::ipi::class::metadata::ClassMetadata>> {
+                            fn __class_children() -> Option<Vec<::ipi::class::metadata::ClassMetadata>> {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_children()
                             }
 
-                            fn __class_metadata() -> Result<::ipi::class::metadata::ClassMetadata> {
+                            fn __class_metadata() -> ::ipi::class::metadata::ClassMetadata {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_metadata()
                             }
 
-                            fn __class_metadata_leaf() -> Result<::ipi::class::metadata::ClassLeaf> {
+                            fn __class_metadata_leaf() -> ::ipi::class::metadata::ClassLeaf {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_metadata_leaf()
                             }
 
-                            fn cursor() -> <Self as ::ipi::class::Class>::Cursor {
-                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::cursor()
+                            fn class_cursor() -> <Self as ::ipi::class::Class>::Cursor {
+                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::class_cursor()
                             }
                         }
 
-                        impl #impl_generics_for_class ::ipi::object::Object for #ident #ty_generics #where_clause_for_class {
-                            type Cursor = Cursor;
+                        impl #impl_generics_for_object ::ipi::object::Object for #ident #ty_generics #where_clause_for_object {
+                            type Cursor = <Self as ::ipi::class::Class>::Cursor;
 
-                            fn __object_name(&self) -> Result<Cow<::ipi::class::metadata::ClassName>> {
-                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_name()
-                                    .map(Cow::Owned)
+                            fn __object_name(&self) -> Cow<::ipi::class::metadata::ClassName> {
+                                Cow::Owned(
+                                    <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_name(),
+                                )
                             }
 
-                            fn __object_doc(&self) -> Result<Cow<::ipi::class::metadata::ClassDoc>> {
-                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_doc()
-                                    .map(Cow::Owned)
+                            fn __object_doc(&self) -> Cow<::ipi::class::metadata::ClassDoc> {
+                                Cow::Owned(
+                                    <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_doc(),
+                                )
                             }
 
                             fn __object_value_ty(&self) -> ::ipi::core::value::ValueType {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_value_ty()
                             }
 
-                            fn __object_children(&self) -> Result<Cow<[::ipi::class::metadata::ClassMetadata]>> {
+                            fn __object_children(&self) -> Option<Cow<[::ipi::class::metadata::ClassMetadata]>> {
                                 <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_children()
-                                    .map(Cow::Owned)
+                                    .map(Into::into)
                             }
 
-                            fn __object_metadata(&self) -> Result<Cow<::ipi::class::metadata::ClassMetadata>> {
-                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_metadata()
-                                    .map(Cow::Owned)
-                            }
-
-                            fn __object_metadata_leaf(&self) -> Result<Cow<::ipi::class::metadata::ClassLeaf>> {
-                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_metadata_leaf()
-                                    .map(Cow::Owned)
-                            }
-
-                            fn cursor(&self) -> Cow<<Self as ::ipi::class::Class>::Cursor> {
+                            fn __object_metadata(&self) -> Cow<::ipi::class::metadata::ClassMetadata> {
                                 Cow::Owned(
-                                    <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::cursor(),
+                                    <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_metadata(),
                                 )
+                            }
+
+                            fn __object_metadata_leaf(&self) -> Cow<::ipi::class::metadata::ClassLeaf> {
+                                Cow::Owned(
+                                    <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::__class_metadata_leaf(),
+                                )
+                            }
+
+                            fn cursor(&self) -> <Self as ::ipi::class::Class>::Cursor {
+                                <<Self as ::ipi::class::Class>::Cursor as ::ipi::class::Class>::class_cursor()
                             }
                         }
 
@@ -262,51 +266,57 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
                             }
                         }
 
-                        impl #impl_generics_for_class ::ipi::class::Class for Cursor {
+                        impl ::ipi::class::Class for Cursor {
                             type Cursor = Self;
 
-                            fn __class_name() -> Result<::ipi::class::metadata::ClassName> {
-                                stringify!(#ident)
-                                    .to_string()
-                                    .try_into()
-                                    .map(::ipi::class::metadata::ClassName::with_en_us)
+                            fn __class_name() -> ::ipi::class::metadata::ClassName {
+                                ::ipi::core::value::text::Text::with_en_us(stringify!(#ident))
                             }
 
-                            fn __class_doc() -> Result<::ipi::class::metadata::ClassDoc> {
-                                #doc
-                                    .unwrap_or_default()
-                                    .to_string()
-                                    .try_into()
-                                    .map(::ipi::class::metadata::ClassDoc::with_en_us)
+                            fn __class_doc() -> ::ipi::class::metadata::ClassDoc {
+                                #doc.map(::ipi::core::value::text::Text::with_en_us)
                             }
 
                             fn __class_value_ty() -> ::ipi::core::value::ValueType {
                                 ::ipi::core::value::ValueType::Dyn
                             }
 
-                            fn __class_children() -> Result<Vec<::ipi::class::metadata::ClassMetadata>> {
-                                Ok(vec![#(
+                            fn __class_children() -> Option<Vec<::ipi::class::metadata::ClassMetadata>> {
+                                Some(vec![#(
                                     #children,
                                 )*])
                             }
+                        }
 
-                            fn __class_metadata() -> Result<::ipi::class::metadata::ClassMetadata> {
-                                Ok(::ipi::class::metadata::ClassMetadata {
-                                    leaf: <Self as ::ipi::class::Class>::__class_metadata_leaf()?,
-                                    children: <Self as ::ipi::class::Class>::__class_children()?,
-                                })
+                        impl ::ipi::object::Object for Cursor {
+                            type Cursor = Self;
+
+                            fn __object_name(&self) -> Cow<::ipi::class::metadata::ClassName> {
+                                Cow::Owned(<Self as ::ipi::class::Class>::__class_name())
                             }
 
-                            fn __class_metadata_leaf() -> Result<::ipi::class::metadata::ClassLeaf> {
-                                Ok(::ipi::class::metadata::ClassLeaf {
-                                    name: <Self as ::ipi::class::Class>::__class_name()?,
-                                    doc: <Self as ::ipi::class::Class>::__class_doc()?,
-                                    ty: <Self as ::ipi::class::Class>::__class_value_ty(),
-                                })
+                            fn __object_doc(&self) -> Cow<::ipi::class::metadata::ClassDoc> {
+                                Cow::Owned(<Self as ::ipi::class::Class>::__class_doc())
                             }
 
-                            fn cursor() -> <Self as ::ipi::class::Class>::Cursor {
-                                <Self as Default>::default()
+                            fn __object_value_ty(&self) -> ::ipi::core::value::ValueType {
+                                <Self as ::ipi::class::Class>::__class_value_ty()
+                            }
+
+                            fn __object_children(&self) -> Option<Cow<[::ipi::class::metadata::ClassMetadata]>> {
+                                <Self as ::ipi::class::Class>::__class_children().map(Into::into)
+                            }
+
+                            fn __object_metadata(&self) -> Cow<::ipi::class::metadata::ClassMetadata> {
+                                Cow::Owned(<Self as ::ipi::class::Class>::__class_metadata())
+                            }
+
+                            fn __object_metadata_leaf(&self) -> Cow<::ipi::class::metadata::ClassLeaf> {
+                                Cow::Owned(<Self as ::ipi::class::Class>::__class_metadata_leaf())
+                            }
+
+                            fn cursor(&self) -> <Self as ::ipi::class::Class>::Cursor {
+                                self.clone()
                             }
                         }
 
@@ -362,10 +372,22 @@ pub fn expand_derive_serialize(input: syn::DeriveInput) -> Result<TokenStream, V
 }
 
 // Add a bound `T: Class` to every type parameter T.
-fn add_trait_bounds(mut generics: Generics) -> Generics {
+fn add_trait_bounds_for_class(generics: &Generics) -> Generics {
+    let mut generics = generics.clone();
     for param in &mut generics.params {
         if let GenericParam::Type(ref mut type_param) = *param {
             type_param.bounds.push(parse_quote!(::ipi::class::Class));
+        }
+    }
+    generics
+}
+
+// Add a bound `T: Object` to every type parameter T.
+fn add_trait_bounds_for_object(generics: &Generics) -> Generics {
+    let mut generics = generics.clone();
+    for param in &mut generics.params {
+        if let GenericParam::Type(ref mut type_param) = *param {
+            type_param.bounds.push(parse_quote!(::ipi::object::Object));
         }
     }
     generics

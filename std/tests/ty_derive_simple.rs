@@ -4,21 +4,22 @@ extern crate ipi_std as ipi;
 extern crate rkyv;
 
 use bytecheck::CheckBytes;
-use ipi::Class;
+use ipi::{object::Object, Class};
+use rkyv::Deserialize;
 
 #[test]
 fn test() {
-    #[derive(Debug, PartialEq, Archive, Serialize, Deserialize, Class)]
+    #[derive(Class, Debug, PartialEq, Archive, Serialize, Deserialize)]
     #[archive(compare(PartialEq))]
-    #[archive_attr(derive(CheckBytes, Debug))]
-    struct MyStruct {
+    #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
+    pub struct MyStruct {
         sub: MySubstruct,
     }
 
-    #[derive(Debug, PartialEq, Archive, Serialize, Deserialize, Class)]
+    #[derive(Class, Debug, PartialEq, Archive, Serialize, Deserialize)]
     #[archive(compare(PartialEq))]
-    #[archive_attr(derive(CheckBytes, Debug))]
-    struct MySubstruct {
+    #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
+    pub struct MySubstruct {
         unit: (),
         // bool: bool,
         // i64: i64,
@@ -38,13 +39,35 @@ fn test() {
         },
     };
 
-    // Serializing is as easy as a single function call
+    // Test derived class methods
+    assert_eq!(
+        MyStruct::class_cursor()
+            .sub()
+            .unit()
+            .__object_name()
+            .to_string(),
+        "()",
+    );
+    assert_eq!(
+        MyStruct::class_cursor().sub().unit().to_string(),
+        "sub.unit",
+    );
+
+    // Test derived object methods
+    assert_eq!(
+        value.cursor().sub().unit().__object_name().to_string(),
+        "()",
+    );
+
+    // Serializing
     let bytes = rkyv::to_bytes::<_, 256>(&value).unwrap();
 
     // You can use the safe API for fast zero-copy deserialization
     let archived = rkyv::check_archived_root::<MyStruct>(&bytes[..]).unwrap();
-    dbg!(archived.sub.unit);
-    dbg!(MyStruct::cursor().sub().unwrap().unit().unwrap());
-    dbg!(MyStruct::__class_name());
-    assert_eq!(archived, &value);
+    assert_eq!(&value, archived);
+    assert_eq!(archived.sub.unit, ());
+
+    // And you can always deserialize back to the original type
+    let deserialized: MyStruct = archived.deserialize(&mut rkyv::Infallible).unwrap();
+    assert_eq!(&value, &deserialized);
 }
