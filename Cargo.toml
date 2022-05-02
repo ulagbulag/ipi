@@ -10,7 +10,7 @@ anyhow = "1.0"
 base58 = "0.2"
 bytecheck = "0.6"
 chrono = "0.4"
-ed25519-dalek = { git = "https://github.com/mobilecoinfoundation/ed25519-dalek.git", rev = "4194e36" }
+ed25519-dalek = { git = "https://github.com/ulagbulag-village/ed25519-dalek.git" }
 fixed = "1.15"
 generic-array = "0.14"
 language-tags = "0.3"
