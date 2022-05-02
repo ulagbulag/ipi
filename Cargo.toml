@@ -11,6 +11,7 @@ base58 = "0.2"
 bytecheck = "0.6"
 chrono = "0.4"
 ed25519-dalek = { git = "https://github.com/ulagbulag-village/ed25519-dalek.git", features = [
+    "alloc",
     "pem",
     "pkcs8",
 ] }
