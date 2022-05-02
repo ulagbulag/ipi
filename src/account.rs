@@ -191,7 +191,7 @@ impl ::core::ops::Deref for AccountRef {
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Account {
-    keypair: Keypair,
+    pub keypair: Keypair,
 }
 
 impl ::core::ops::Deref for Account {
