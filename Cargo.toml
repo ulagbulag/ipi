@@ -10,7 +10,9 @@ anyhow = "1.0"
 base58 = "0.2"
 bytecheck = "0.6"
 chrono = "0.4"
-ed25519-dalek = { git = "https://github.com/ulagbulag-village/ed25519-dalek.git" }
+ed25519-dalek = { git = "https://github.com/ulagbulag-village/ed25519-dalek.git", features = [
+    "pkcs8",
+] }
 fixed = "1.15"
 generic-array = "0.14"
 language-tags = "0.3"
