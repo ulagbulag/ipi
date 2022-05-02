@@ -179,6 +179,14 @@ pub struct AccountRef {
     pub public_key: PublicKey,
 }
 
+impl ::core::ops::Deref for AccountRef {
+    type Target = PublicKey;
+
+    fn deref(&self) -> &Self::Target {
+        &self.public_key
+    }
+}
+
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
@@ -186,7 +194,21 @@ pub struct Account {
     keypair: Keypair,
 }
 
+impl ::core::ops::Deref for Account {
+    type Target = Keypair;
+
+    fn deref(&self) -> &Self::Target {
+        &self.keypair
+    }
+}
+
 impl Account {
+    pub fn account_ref(&self) -> AccountRef {
+        AccountRef {
+            public_key: self.keypair.public_key(),
+        }
+    }
+
     pub(crate) fn sign<T>(&self, data: &T) -> Result<Identity>
     where
         T: Serialize<SignatureSerializer>,

@@ -199,3 +199,13 @@ impl<D: Fallible + ?Sized> Deserialize<Keypair, D> for <Keypair as Archive>::Arc
             .map(Keypair)
     }
 }
+
+impl Keypair {
+    pub fn public_key(&self) -> PublicKey {
+        PublicKey(self.0.public)
+    }
+
+    pub fn secret_key(&self) -> &::ed25519_dalek::SecretKey {
+        &self.0.secret
+    }
+}
