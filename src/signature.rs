@@ -220,6 +220,12 @@ impl<D: Fallible + ?Sized> Deserialize<Keypair, D> for <Keypair as Archive>::Arc
 }
 
 impl Keypair {
+    pub fn generate() -> Self {
+        Self(::ed25519_dalek::Keypair::generate(
+            &mut ::rand::rngs::OsRng {},
+        ))
+    }
+
     pub fn public_key(&self) -> PublicKey {
         PublicKey(self.0.public)
     }
