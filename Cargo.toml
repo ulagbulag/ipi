@@ -5,6 +5,10 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["alloc"]
+alloc = ["ed25519-dalek/alloc"]
+
 [dependencies]
 anyhow = "1.0"
 base58 = "0.2"
