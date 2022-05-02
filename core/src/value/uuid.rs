@@ -1,4 +1,7 @@
-use rkyv::{rend::LittleEndian, Archive, Deserialize, Fallible, Serialize};
+use rkyv::{
+    rend::{BigEndian, LittleEndian},
+    Archive, Deserialize, Fallible, Serialize,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Uuid(pub ::uuid::Uuid);
@@ -11,9 +14,21 @@ impl ::core::ops::Deref for Uuid {
     }
 }
 
+impl PartialEq<Uuid> for BigEndian<u128> {
+    fn eq(&self, other: &Uuid) -> bool {
+        self == &other.0.as_u128()
+    }
+}
+
 impl PartialEq<Uuid> for LittleEndian<u128> {
     fn eq(&self, other: &Uuid) -> bool {
         self == &other.0.as_u128()
+    }
+}
+
+impl PartialOrd<Uuid> for BigEndian<u128> {
+    fn partial_cmp(&self, other: &Uuid) -> Option<::core::cmp::Ordering> {
+        self.partial_cmp(&other.0.as_u128())
     }
 }
 

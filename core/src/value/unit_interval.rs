@@ -1,5 +1,8 @@
 use fixed::{traits::ToFixed, types::U0F32};
-use rkyv::{rend::LittleEndian, Archive, Deserialize, Fallible, Serialize};
+use rkyv::{
+    rend::{BigEndian, LittleEndian},
+    Archive, Deserialize, Fallible, Serialize,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UnitInterval(pub U0F32);
@@ -21,9 +24,21 @@ impl ::core::ops::Deref for UnitInterval {
     }
 }
 
+impl PartialEq<UnitInterval> for BigEndian<u32> {
+    fn eq(&self, other: &UnitInterval) -> bool {
+        self == &other.0.to_bits()
+    }
+}
+
 impl PartialEq<UnitInterval> for LittleEndian<u32> {
     fn eq(&self, other: &UnitInterval) -> bool {
         self == &other.0.to_bits()
+    }
+}
+
+impl PartialOrd<UnitInterval> for BigEndian<u32> {
+    fn partial_cmp(&self, other: &UnitInterval) -> Option<::core::cmp::Ordering> {
+        self.partial_cmp(&other.0.to_bits())
     }
 }
 
