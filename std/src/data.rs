@@ -6,9 +6,9 @@
     <Inner as ::rkyv::Archive>::Archived: ::core::fmt::Debug + PartialEq,
 "))]
 #[archive(compare(PartialEq))]
-#[archive_attr(derive(Debug, PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq))]
 
-pub struct Data<Class = crate::class_data::ClassData, Inner = crate::path::Path> {
+pub struct Data<Class = crate::class::metadata::ClassMetadata, Inner = crate::path::Path> {
     pub class: Class,
     pub inner: Inner,
 }

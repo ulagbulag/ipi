@@ -1,3 +1,4 @@
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
@@ -8,7 +9,7 @@ use crate::{
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[archive_attr(derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct CreditRating(pub GuarantorSigned<CreditRatingPayload>);
 
 impl ::core::ops::Deref for CreditRating {
@@ -29,7 +30,7 @@ impl Verifier for CreditRating {
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct CreditRatingPayload {
     pub value: U64,
 }

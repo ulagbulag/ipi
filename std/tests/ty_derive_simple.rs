@@ -1,10 +1,10 @@
-#[macro_use]
 extern crate ipi_std as ipi;
 
 #[macro_use]
 extern crate rkyv;
 
 use bytecheck::CheckBytes;
+use ipi::Class;
 
 #[test]
 fn test() {
@@ -20,21 +20,21 @@ fn test() {
     #[archive_attr(derive(CheckBytes, Debug))]
     struct MySubstruct {
         unit: (),
-        bool: bool,
-        i64: i64,
-        u64: u64,
-        f32: f32,
-        f64: f64,
+        // bool: bool,
+        // i64: i64,
+        // u64: u64,
+        // f32: f32,
+        // f64: f64,
     }
 
     let value = MyStruct {
         sub: MySubstruct {
             unit: (),
-            bool: true,
-            i64: 42,
-            u64: 42,
-            f32: 42.0,
-            f64: 42.0,
+            // bool: true,
+            // i64: 42,
+            // u64: 42,
+            // f32: 42.0,
+            // f64: 42.0,
         },
     };
 
@@ -43,6 +43,8 @@ fn test() {
 
     // You can use the safe API for fast zero-copy deserialization
     let archived = rkyv::check_archived_root::<MyStruct>(&bytes[..]).unwrap();
-    dbg!(archived.sub.bool);
+    dbg!(archived.sub.unit);
+    dbg!(MyStruct::cursor().sub().unwrap().unit().unwrap());
+    dbg!(MyStruct::__class_name());
     assert_eq!(archived, &value);
 }

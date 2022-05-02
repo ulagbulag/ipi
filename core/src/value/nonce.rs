@@ -1,3 +1,4 @@
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 use super::uuid::Uuid;
@@ -6,7 +7,7 @@ use super::uuid::Uuid;
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Nonce(pub Uuid);
 
 impl ::core::ops::Deref for Nonce {

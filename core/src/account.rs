@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
@@ -10,12 +11,10 @@ use crate::{
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(bound(archive = "
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
-    <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
     <GuaranteeSigned<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
 ",))]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct GuarantorSigned<T>
 where
     T: Archive,
@@ -85,12 +84,10 @@ where
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(bound(archive = "
-    T: Archive,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
     <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
 ",))]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct GuaranteeSigned<T> {
     pub guarantee: Identity,
     pub data: Metadata<T>,
@@ -154,7 +151,7 @@ pub trait Verifier {
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Identity {
     pub account: AccountRef,
     pub signature: Signature,
@@ -177,14 +174,14 @@ impl Identity {
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct AccountRef {
     pub public_key: PublicKey,
 }
 
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Debug))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Account {
     keypair: Keypair,
 }

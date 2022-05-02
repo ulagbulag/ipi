@@ -1,6 +1,6 @@
 use generic_array::GenericArray;
-use rkyv::{Deserialize, Fallible, Serialize, Archive};
-use sha2::{Sha256VarCore, digest::OutputSizeUser};
+use rkyv::{Archive, Deserialize, Fallible, Serialize};
+use sha2::{digest::OutputSizeUser, Sha256VarCore};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Hash(pub GenericArray<u8, <Sha256VarCore as OutputSizeUser>::OutputSize>);

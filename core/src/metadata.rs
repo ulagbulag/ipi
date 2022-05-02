@@ -1,3 +1,4 @@
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
@@ -10,10 +11,9 @@ use crate::{
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(bound(archive = "
-    T: Archive,
     <T as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
 "))]
-#[archive_attr(derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Metadata<T> {
     pub nonce: Nonce,
     pub created_date: DateTime,

@@ -1,30 +1,22 @@
+use bytecheck::CheckBytes;
 use num_traits::{FromPrimitive, ToPrimitive};
 use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
-)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize)]
+#[archive(bound(archive = "
+    <[u8; U] as Archive>::Archived: Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <Len as Archive>::Archived: Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+",))]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
-pub struct String<const U: usize = 256, Len = u8>
-where
-    <[u8; U] as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
-    Len: Archive,
-    <Len as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
-{
+#[archive_attr(derive(CheckBytes, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+pub struct String<const U: usize = 256, Len = u8> {
     pub buf: [u8; U],
     pub len: Len,
 }
 
 impl<const U: usize, Len> TryFrom<::std::string::String> for String<U, Len>
 where
-    <[u8; U] as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
-    Len: Archive + FromPrimitive,
-    <Len as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    Len: FromPrimitive,
 {
     type Error = ::anyhow::Error;
 
@@ -41,11 +33,7 @@ where
 
 impl<'a, const U: usize, Len> TryFrom<&'a String<U, Len>> for &'a str
 where
-    <[u8; U] as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
-    Len: Archive + ToPrimitive,
-    <Len as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    Len: ToPrimitive,
 {
     type Error = ::anyhow::Error;
 
@@ -57,5 +45,27 @@ where
                 .ok_or_else(|| anyhow!("Buffer Overflow"))?],
         )
         .map_err(Into::into)
+    }
+}
+
+impl<const U: usize, Len> ::core::fmt::Debug for String<U, Len>
+where
+    Len: ToPrimitive,
+{
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        <&str>::try_from(self)
+            .map_err(|_| ::core::fmt::Error)
+            .and_then(|e| ::core::fmt::Debug::fmt(e, f))
+    }
+}
+
+impl<const U: usize, Len> ::core::fmt::Display for String<U, Len>
+where
+    Len: ToPrimitive,
+{
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        <&str>::try_from(self)
+            .map_err(|_| ::core::fmt::Error)
+            .and_then(|e| ::core::fmt::Display::fmt(e, f))
     }
 }
