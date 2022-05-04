@@ -11,9 +11,10 @@ use crate::{
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(bound(archive = "
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 "))]
-#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq))]
 pub struct Metadata<T> {
     pub nonce: Nonce,
     pub created_date: DateTime,
@@ -33,8 +34,7 @@ impl<T> ::core::ops::Deref for Metadata<T> {
 impl<T> Signer<Self> for Metadata<T>
 where
     T: Archive + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived:
-        Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn sign(account: &crate::account::Account, mut data: Self) -> anyhow::Result<Self>
     where

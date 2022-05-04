@@ -9,7 +9,8 @@ use crate::{
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq))]
 pub struct CreditRating(pub GuarantorSigned<CreditRatingPayload>);
 
 impl ::core::ops::Deref for CreditRating {

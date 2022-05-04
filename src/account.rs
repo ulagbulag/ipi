@@ -11,15 +11,14 @@ use crate::{
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(bound(archive = "
-    <GuaranteeSigned<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <GuaranteeSigned<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 ",))]
-#[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq))]
 pub struct GuarantorSigned<T>
 where
     T: Archive,
-    <T as Archive>::Archived:
-        ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     pub guarantor: Identity,
     pub data: GuaranteeSigned<T>,
@@ -28,8 +27,7 @@ where
 impl<T> ::core::ops::Deref for GuarantorSigned<T>
 where
     T: Archive,
-    <T as Archive>::Archived:
-        ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     type Target = GuaranteeSigned<T>;
 
@@ -40,16 +38,8 @@ where
 
 impl<T> Signer<GuaranteeSigned<T>> for GuarantorSigned<T>
 where
-    T: ::core::fmt::Debug
-        + PartialEq
-        + Eq
-        + PartialOrd
-        + Ord
-        + ::core::hash::Hash
-        + Archive
-        + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived:
-        ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    T: ::core::fmt::Debug + PartialEq + Archive + Serialize<SignatureSerializer>,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn sign(account: &Account, data: GuaranteeSigned<T>) -> Result<Self>
     where
@@ -64,16 +54,8 @@ where
 
 impl<T> Verifier for GuarantorSigned<T>
 where
-    T: ::core::fmt::Debug
-        + PartialEq
-        + Eq
-        + PartialOrd
-        + Ord
-        + ::core::hash::Hash
-        + Archive
-        + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived:
-        ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    T: ::core::fmt::Debug + PartialEq + Archive + Serialize<SignatureSerializer>,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn verify(&self) -> Result<()> {
         self.guarantor.verify(&self.data)
@@ -84,10 +66,10 @@ where
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(bound(archive = "
-    <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 ",))]
-#[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq))]
 pub struct GuaranteeSigned<T> {
     pub guarantee: Identity,
     pub data: Metadata<T>,
@@ -96,8 +78,7 @@ pub struct GuaranteeSigned<T> {
 impl<T> ::core::ops::Deref for GuaranteeSigned<T>
 where
     T: Archive,
-    <T as Archive>::Archived:
-        Copy + Clone + ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     type Target = Metadata<T>;
 
@@ -109,8 +90,7 @@ where
 impl<T> Signer<Metadata<T>> for GuaranteeSigned<T>
 where
     T: Archive + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived:
-        ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn sign(account: &Account, data: Metadata<T>) -> Result<Self>
     where
@@ -126,8 +106,7 @@ where
 impl<T> Verifier for GuaranteeSigned<T>
 where
     T: Archive + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived:
-        ::core::fmt::Debug + PartialEq + Eq + PartialOrd + Ord + ::core::hash::Hash,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn verify(&self) -> Result<()> {
         self.guarantee.verify(&self.data)
