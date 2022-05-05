@@ -22,3 +22,6 @@ rand = "0.8"
 rkyv = { version = "0.7", features = ["archive_be"] }
 sha2 = "0.10"
 uuid = { version = "1.0", features = ["v4"] }
+
+[dev-dependencies]
+rkyv = { version = "0.7", features = ["archive_be", "validation"] }

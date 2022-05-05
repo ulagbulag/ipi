@@ -58,11 +58,26 @@ where
 
 impl<T> Verifier for GuarantorSigned<T>
 where
-    T: ::core::fmt::Debug + PartialEq + Archive + Serialize<SignatureSerializer>,
+    T: Archive + Serialize<SignatureSerializer> + ::core::fmt::Debug + PartialEq,
     <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        if self.guarantor.account != self.data.guarantor {
+        if self.guarantor.account != self.data.data.guarantor {
+            bail!("guarantor mismatching");
+        }
+
+        self.guarantor.verify(&self.data)?;
+        self.data.verify(guarantor)
+    }
+}
+
+impl<T> Verifier for ArchivedGuarantorSigned<T>
+where
+    T: Archive + Serialize<SignatureSerializer> + ::core::fmt::Debug + PartialEq,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
+{
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        if self.guarantor.account != self.data.data.guarantor {
             bail!("guarantor mismatching");
         }
 
@@ -119,7 +134,24 @@ where
 {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
         if let Some(guarantor) = guarantor {
-            if self.guarantor != guarantor {
+            if self.data.guarantor != guarantor {
+                bail!("guarantor mismatching");
+            }
+        }
+
+        self.guarantee.verify(&self.data)
+    }
+}
+
+impl<T> Verifier for ArchivedGuaranteeSigned<T>
+where
+    T: Archive + Serialize<SignatureSerializer> + ::core::fmt::Debug + PartialEq,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
+    <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
+{
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        if let Some(guarantor) = guarantor {
+            if self.data.guarantor != guarantor {
                 bail!("guarantor mismatching");
             }
         }
@@ -156,10 +188,21 @@ impl Identity {
     where
         T: Serialize<SignatureSerializer>,
     {
+        let data = ::rkyv::to_bytes::<_, 64>(data)?;
+        self.verify_archived(&data)
+    }
+
+    fn verify_archived(&self, data: &[u8]) -> Result<()> {
         use ed25519_dalek::Verifier;
 
-        let data = ::rkyv::to_bytes::<_, 64>(data)?;
-        self.account.public_key.verify(&data, &self.signature)?;
+        self.account.public_key.verify(data, &self.signature)?;
+        Ok(())
+    }
+}
+
+impl ArchivedIdentity {
+    fn verify<T>(&self, data: &T) -> Result<()> {
+        // TODO: to be implemented
         Ok(())
     }
 }

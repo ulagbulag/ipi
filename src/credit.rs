@@ -1,3 +1,4 @@
+use anyhow::Result;
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -22,7 +23,13 @@ impl ::core::ops::Deref for CreditRating {
 }
 
 impl Verifier for CreditRating {
-    fn verify(&self, guarantor: Option<AccountRef>) -> anyhow::Result<()> {
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        self.0.verify(guarantor)
+    }
+}
+
+impl Verifier for ArchivedCreditRating {
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
         self.0.verify(guarantor)
     }
 }

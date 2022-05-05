@@ -38,4 +38,11 @@ fn test_simple() {
 
     // verify
     let () = signed.verify(Some(guarantor.account_ref())).unwrap();
+
+    // archive
+    let bytes = ::rkyv::to_bytes::<_, 4096>(&signed).unwrap();
+    let archived = ::rkyv::check_archived_root::<GuarantorSigned<MyData>>(&bytes[..]).unwrap();
+
+    // verify
+    let () = archived.verify(Some(guarantor.account_ref())).unwrap();
 }
