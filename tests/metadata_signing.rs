@@ -1,13 +1,13 @@
 use bytecheck::CheckBytes;
 use ipi::{
-    account::{Account, Verifier},
+    account::{Account, GuarantorSigned, Signer, Verifier},
     metadata::Metadata,
 };
 use rkyv::{Archive, Deserialize, Serialize};
 
 #[test]
 fn test_simple() {
-    #[derive(Debug, Archive, Serialize, Deserialize)]
+    #[derive(Debug, PartialEq, Archive, Serialize, Deserialize)]
     #[archive(compare(PartialEq))]
     #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
     pub struct MyData {
@@ -24,9 +24,17 @@ fn test_simple() {
     // create a builder
     let builder = Metadata::builder();
 
-    // sign
-    let account = Account::generate();
-    let signed = builder.build(&account, data).unwrap();
+    // create client pair
+    let guarantee = Account::generate();
+    let guarantor = Account::generate();
+
+    // sign as guarantee
+    let signed = builder
+        .build(&guarantee, guarantor.account_ref(), data)
+        .unwrap();
+
+    // sign as guarantor
+    let signed = GuarantorSigned::sign(&guarantor, signed).unwrap();
 
     // verify
     let () = signed.verify().unwrap();

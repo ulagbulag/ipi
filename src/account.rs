@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -45,6 +45,10 @@ where
     where
         Self: Sized,
     {
+        if account.account_ref() != data.guarantor {
+            bail!("guarantor mismatching");
+        }
+
         Ok(GuarantorSigned {
             guarantor: account.sign(&data)?,
             data,
@@ -58,6 +62,10 @@ where
     <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn verify(&self) -> Result<()> {
+        if self.guarantor.account != self.data.guarantor {
+            bail!("guarantor mismatching");
+        }
+
         self.guarantor.verify(&self.data)
     }
 }
