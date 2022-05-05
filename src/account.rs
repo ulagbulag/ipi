@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -252,6 +252,16 @@ impl ::core::ops::Deref for AccountRef {
     }
 }
 
+impl ::core::str::FromStr for AccountRef {
+    type Err = ::anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self {
+            public_key: s.parse()?,
+        })
+    }
+}
+
 #[derive(Debug, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
@@ -264,6 +274,16 @@ impl ::core::ops::Deref for Account {
 
     fn deref(&self) -> &Self::Target {
         &self.keypair
+    }
+}
+
+impl ::core::str::FromStr for Account {
+    type Err = ::anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self {
+            keypair: s.parse()?,
+        })
     }
 }
 

@@ -1,4 +1,5 @@
-use base58::ToBase58;
+use anyhow::anyhow;
+use base58::{FromBase58, ToBase58};
 use rkyv::{ser::serializers::AllocSerializer, Archive, Deserialize, Fallible, Serialize};
 
 pub type SignatureSerializer = AllocSerializer<64>;
@@ -130,6 +131,15 @@ impl ::core::hash::Hash for PublicKey {
     }
 }
 
+impl ::core::str::FromStr for PublicKey {
+    type Err = ::anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let bytes = s.from_base58().map_err(|_| anyhow!(""))?;
+        Ok(Self(::ed25519_dalek::PublicKey::from_bytes(&bytes)?))
+    }
+}
+
 impl ToString for PublicKey {
     fn to_string(&self) -> String {
         self.0.as_ref().to_base58()
@@ -183,6 +193,15 @@ impl PartialEq<Keypair> for [u8; 64] {
 impl PartialOrd<Keypair> for [u8; 64] {
     fn partial_cmp(&self, other: &Keypair) -> Option<::core::cmp::Ordering> {
         self.partial_cmp(&other.0.to_bytes())
+    }
+}
+
+impl ::core::str::FromStr for Keypair {
+    type Err = ::anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let bytes = s.from_base58().map_err(|_| anyhow!(""))?;
+        Ok(Self(::ed25519_dalek::Keypair::from_bytes(&bytes)?))
     }
 }
 
