@@ -1,9 +1,24 @@
+use anyhow::anyhow;
+use base58::{FromBase58, ToBase58};
 use generic_array::GenericArray;
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
-use sha2::{digest::OutputSizeUser, Sha256VarCore};
+use sha2::{digest::OutputSizeUser, Digest, Sha256, Sha256VarCore};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Hash(pub GenericArray<u8, <Sha256VarCore as OutputSizeUser>::OutputSize>);
+
+impl Hash {
+    pub fn with_bytes(bytes: &[u8]) -> Self {
+        // create a Sha256 object
+        let mut hasher = Sha256::new();
+
+        // write input message
+        hasher.update(bytes);
+
+        // read hash digest and consume hasher
+        Self(hasher.finalize())
+    }
+}
 
 impl ::core::ops::Deref for Hash {
     type Target = GenericArray<u8, <Sha256VarCore as OutputSizeUser>::OutputSize>;
@@ -22,6 +37,25 @@ impl PartialEq<Hash> for [u8; 32] {
 impl PartialOrd<Hash> for [u8; 32] {
     fn partial_cmp(&self, other: &Hash) -> Option<::core::cmp::Ordering> {
         self.partial_cmp(&Self::from(other.0))
+    }
+}
+
+impl ::core::str::FromStr for Hash {
+    type Err = ::anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let bytes = s
+            .from_base58()
+            .map_err(|_| anyhow!("failed to parse Hash"))?;
+        Ok(Self(
+            GenericArray::from_exact_iter(bytes).ok_or_else(|| anyhow!("failed to parse Hash"))?,
+        ))
+    }
+}
+
+impl ToString for Hash {
+    fn to_string(&self) -> String {
+        self.0.to_base58()
     }
 }
 

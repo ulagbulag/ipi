@@ -135,7 +135,9 @@ impl ::core::str::FromStr for PublicKey {
     type Err = ::anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = s.from_base58().map_err(|_| anyhow!(""))?;
+        let bytes = s
+            .from_base58()
+            .map_err(|_| anyhow!("failed to parse PublicKey"))?;
         Ok(Self(::ed25519_dalek::PublicKey::from_bytes(&bytes)?))
     }
 }
@@ -200,7 +202,9 @@ impl ::core::str::FromStr for Keypair {
     type Err = ::anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let bytes = s.from_base58().map_err(|_| anyhow!(""))?;
+        let bytes = s
+            .from_base58()
+            .map_err(|_| anyhow!("failed to parse Keypair"))?;
         Ok(Self(::ed25519_dalek::Keypair::from_bytes(&bytes)?))
     }
 }
