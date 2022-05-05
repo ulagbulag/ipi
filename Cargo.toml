@@ -21,4 +21,4 @@ language-tags = "0.3"
 rand = "0.8"
 rkyv = { version = "0.7", features = ["archive_be"] }
 sha2 = "0.10"
-uuid = "1.0"
+uuid = { version = "1.0", features = ["v4"] }

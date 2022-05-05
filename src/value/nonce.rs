@@ -17,3 +17,9 @@ impl ::core::ops::Deref for Nonce {
         &self.0
     }
 }
+
+impl Nonce {
+    pub fn generate() -> Self {
+        Self(Uuid::generate())
+    }
+}

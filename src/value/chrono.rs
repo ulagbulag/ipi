@@ -75,6 +75,12 @@ impl<D: Fallible + ?Sized> Deserialize<DateTime, D> for <DateTime as Archive>::A
     }
 }
 
+impl DateTime {
+    pub fn now() -> Self {
+        Self(::chrono::Utc::now())
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NaiveDateTime(pub ::chrono::NaiveDateTime);
 

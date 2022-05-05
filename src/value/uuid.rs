@@ -63,3 +63,9 @@ impl<D: Fallible + ?Sized> Deserialize<Uuid, D> for <Uuid as Archive>::Archived 
             .map(Uuid)
     }
 }
+
+impl Uuid {
+    pub fn generate() -> Self {
+        Self(::uuid::Uuid::new_v4())
+    }
+}

@@ -182,6 +182,12 @@ impl ::core::ops::Deref for Account {
 }
 
 impl Account {
+    pub fn generate() -> Self {
+        Self {
+            keypair: Keypair::generate(),
+        }
+    }
+
     pub fn account_ref(&self) -> AccountRef {
         AccountRef {
             public_key: self.keypair.public_key(),
