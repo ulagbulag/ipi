@@ -173,6 +173,34 @@ pub trait Verifier {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()>;
 }
 
+impl<T> Verifier for &T
+where
+    T: Verifier,
+{
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        (&**self).verify(guarantor)
+    }
+}
+
+impl<T> Verifier for Box<T>
+where
+    T: Verifier,
+{
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        (&**self).verify(guarantor)
+    }
+}
+
+impl<T> Verifier for ::core::pin::Pin<T>
+where
+    T: ::core::ops::Deref,
+    <T as ::core::ops::Deref>::Target: Verifier,
+{
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        (&**self).verify(guarantor)
+    }
+}
+
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
