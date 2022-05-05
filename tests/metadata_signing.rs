@@ -37,5 +37,5 @@ fn test_simple() {
     let signed = GuarantorSigned::sign(&guarantor, signed).unwrap();
 
     // verify
-    let () = signed.verify().unwrap();
+    let () = signed.verify(Some(guarantor.account_ref())).unwrap();
 }

@@ -2,7 +2,7 @@ use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
-    account::{GuarantorSigned, Verifier},
+    account::{AccountRef, GuarantorSigned, Verifier},
     value::primitives::U64,
 };
 
@@ -22,8 +22,8 @@ impl ::core::ops::Deref for CreditRating {
 }
 
 impl Verifier for CreditRating {
-    fn verify(&self) -> anyhow::Result<()> {
-        self.0.verify()
+    fn verify(&self, guarantor: Option<AccountRef>) -> anyhow::Result<()> {
+        self.0.verify(guarantor)
     }
 }
 

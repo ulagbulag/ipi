@@ -61,12 +61,13 @@ where
     T: ::core::fmt::Debug + PartialEq + Archive + Serialize<SignatureSerializer>,
     <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
-    fn verify(&self) -> Result<()> {
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
         if self.guarantor.account != self.data.guarantor {
             bail!("guarantor mismatching");
         }
 
-        self.guarantor.verify(&self.data)
+        self.guarantor.verify(&self.data)?;
+        self.data.verify(guarantor)
     }
 }
 
@@ -116,7 +117,13 @@ where
     T: Archive + Serialize<SignatureSerializer>,
     <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
-    fn verify(&self) -> Result<()> {
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+        if let Some(guarantor) = guarantor {
+            if self.guarantor != guarantor {
+                bail!("guarantor mismatching");
+            }
+        }
+
         self.guarantee.verify(&self.data)
     }
 }
@@ -131,7 +138,7 @@ where
 }
 
 pub trait Verifier {
-    fn verify(&self) -> Result<()>;
+    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()>;
 }
 
 #[derive(
