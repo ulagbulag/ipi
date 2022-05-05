@@ -1,3 +1,4 @@
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
 #[derive(Copy, Clone, Debug, Eq)]
@@ -142,7 +143,7 @@ impl<D: Fallible + ?Sized> Deserialize<NaiveDateTime, D> for <NaiveDateTime as A
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 // FIXME: hide it
 pub struct NaiveDateTimeTemplate {
     secs: i64,

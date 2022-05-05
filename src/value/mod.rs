@@ -5,13 +5,14 @@ pub mod primitives;
 pub mod text;
 pub mod uuid;
 
+use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
-#[archive_attr(derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
+#[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub enum ValueType {
     None,
     Dyn,
