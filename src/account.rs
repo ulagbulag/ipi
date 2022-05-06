@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
