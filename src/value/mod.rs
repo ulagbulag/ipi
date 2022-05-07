@@ -1,3 +1,4 @@
+pub mod array;
 pub mod chrono;
 pub mod hash;
 pub mod nonce;
