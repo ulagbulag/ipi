@@ -1,9 +1,9 @@
 use anyhow::Result;
 use bytecheck::CheckBytes;
-use ndarray::{DataOwned, Dim, Dimension, Ix, IxDyn};
+use ndarray::{Dim, Dimension, Ix, IxDyn};
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Array<A, D>(pub ::ndarray::ArcArray<A, D>)
 where
     D: Dimension;
@@ -23,10 +23,7 @@ impl<A, const D: usize> Array<A, Dim<[Ix; D]>>
 where
     Dim<[Ix; D]>: Dimension,
 {
-    fn try_from_raw(raw: ArrayRaw<A, <Dim<[Ix; D]> as Dimension>::Pattern>) -> Result<Self>
-    where
-        A: DataOwned,
-    {
+    fn try_from_raw(raw: ArrayRaw<A, <Dim<[Ix; D]> as Dimension>::Pattern>) -> Result<Self> {
         ::ndarray::Array::<A, Dim<[Ix; D]>>::from_shape_vec(raw.dim, raw.data)
             .map_err(Into::into)
             .map(::ndarray::ArrayBase::into_shared)
@@ -84,7 +81,7 @@ where
 impl<A, const D: usize, De: Fallible + ?Sized> Deserialize<Array<A, Dim<[Ix; D]>>, De>
     for <Array<A, Dim<[Ix; D]>> as Archive>::Archived
 where
-    A: Clone + DataOwned,
+    A: Clone,
     Vec<A>: Archive,
     <Vec<A> as Archive>::Archived: Deserialize<Vec<A>, De> + ::core::fmt::Debug + PartialEq,
     Dim<[Ix; D]>: Dimension,
@@ -104,10 +101,7 @@ where
 }
 
 impl<A> Array<A, IxDyn> {
-    fn try_from_raw_dyn(raw: ArrayRaw<A, Vec<usize>>) -> Result<Self>
-    where
-        A: DataOwned,
-    {
+    fn try_from_raw_dyn(raw: ArrayRaw<A, Vec<usize>>) -> Result<Self> {
         ::ndarray::Array::<A, IxDyn>::from_shape_vec(raw.dim, raw.data)
             .map_err(Into::into)
             .map(::ndarray::ArrayBase::into_shared)
@@ -160,7 +154,7 @@ where
 impl<A, De: Fallible + ?Sized> Deserialize<Array<A, IxDyn>, De>
     for <Array<A, IxDyn> as Archive>::Archived
 where
-    A: Clone + DataOwned,
+    A: Clone,
     Vec<A>: Archive,
     <Vec<A> as Archive>::Archived: Deserialize<Vec<A>, De> + ::core::fmt::Debug + PartialEq,
 {
@@ -219,5 +213,19 @@ mod tests {
         pub struct MyTensor {
             data: Array<f64, ndarray::IxDyn>,
         }
+
+        // create a data
+        let tensor = MyTensor {
+            data: Default::default(),
+        };
+
+        // serialize
+        let bytes = ::rkyv::to_bytes::<_, 4096>(&tensor).unwrap();
+
+        // deserialize
+        let deserialized: MyTensor = ::rkyv::from_bytes(&bytes).unwrap();
+
+        // verify
+        assert_eq!(&tensor, &deserialized);
     }
 }
