@@ -27,6 +27,7 @@ fixed = "1.15"
 generic-array = "0.14"
 language-tags = "0.3"
 ndarray = "0.15"
+ordered-float = "3.0"
 rand = "0.8"
 rkyv = { version = "0.7", features = ["archive_be"] }
 sha2 = "0.10"
