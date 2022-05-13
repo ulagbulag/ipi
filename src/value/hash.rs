@@ -18,6 +18,10 @@ impl Hash {
         // read hash digest and consume hasher
         Self(hasher.finalize())
     }
+
+    pub fn with_str(msg: &str) -> Self {
+        Self::with_bytes(msg.as_bytes())
+    }
 }
 
 impl ::core::ops::Deref for Hash {
