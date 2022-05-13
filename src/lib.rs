@@ -1,4 +1,5 @@
 pub extern crate anyhow;
+pub extern crate chrono;
 pub extern crate ed25519_dalek;
 pub extern crate generic_array;
 pub extern crate ndarray;
