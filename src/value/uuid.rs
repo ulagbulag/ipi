@@ -38,6 +38,20 @@ impl PartialOrd<Uuid> for LittleEndian<u128> {
     }
 }
 
+impl ::core::str::FromStr for Uuid {
+    type Err = ::uuid::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        <::uuid::Uuid as ::core::str::FromStr>::from_str(s).map(Self)
+    }
+}
+
+impl ToString for Uuid {
+    fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
 impl Archive for Uuid {
     type Archived = <u128 as Archive>::Archived;
     type Resolver = <u128 as Archive>::Resolver;

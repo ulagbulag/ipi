@@ -71,8 +71,7 @@ impl<D: Fallible + ?Sized> Deserialize<DateTime, D> for <DateTime as Archive>::A
     #[inline]
     fn deserialize(&self, deserializer: &mut D) -> Result<DateTime, D::Error> {
         Deserialize::<NaiveDateTime, D>::deserialize(self, deserializer)
-            .map(|datetime| ::chrono::DateTime::from_utc(datetime.0, ::chrono::Utc))
-            .map(DateTime)
+            .map(|datetime| datetime.to_utc())
     }
 }
 
@@ -113,6 +112,20 @@ impl ::core::ops::Deref for NaiveDateTime {
     }
 }
 
+impl ::core::str::FromStr for NaiveDateTime {
+    type Err = ::chrono::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        <::chrono::NaiveDateTime as ::core::str::FromStr>::from_str(s).map(Self)
+    }
+}
+
+impl ToString for NaiveDateTime {
+    fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
 impl Archive for NaiveDateTime {
     type Archived = <NaiveDateTimeTemplate as Archive>::Archived;
     type Resolver = <NaiveDateTimeTemplate as Archive>::Resolver;
@@ -136,6 +149,12 @@ impl<D: Fallible + ?Sized> Deserialize<NaiveDateTime, D> for <NaiveDateTime as A
         Deserialize::<NaiveDateTimeTemplate, D>::deserialize(self, deserializer)
             // FIXME: handle chrono input errors
             .map(|e| e.try_into().unwrap())
+    }
+}
+
+impl NaiveDateTime {
+    pub fn to_utc(&self) -> DateTime {
+        DateTime(::chrono::DateTime::from_utc(self.0, ::chrono::Utc))
     }
 }
 
