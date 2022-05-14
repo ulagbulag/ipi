@@ -51,6 +51,17 @@ impl ::core::hash::Hash for Signature {
     }
 }
 
+impl ::core::str::FromStr for Signature {
+    type Err = ::anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let bytes = s
+            .from_base58()
+            .map_err(|_| anyhow!("failed to parse Signature"))?;
+        Ok(Self(::ed25519_dalek::Signature::from_bytes(&bytes)?))
+    }
+}
+
 impl ToString for Signature {
     fn to_string(&self) -> String {
         self.0.as_ref().to_base58()
