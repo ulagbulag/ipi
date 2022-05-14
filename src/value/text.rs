@@ -1,6 +1,8 @@
 use bytecheck::CheckBytes;
 use rkyv::{ser::Serializer, string::ArchivedString, Archive, Deserialize, Fallible, Serialize};
 
+use super::hash::Hash;
+
 #[derive(Clone, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
@@ -28,6 +30,14 @@ impl Text {
             lang: LanguageTag::new_en_us(),
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
+pub struct TextHash {
+    pub msg: Hash,
+    pub lang: Hash,
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]

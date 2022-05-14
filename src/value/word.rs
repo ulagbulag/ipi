@@ -1,7 +1,10 @@
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
-use super::text::Text;
+use super::{
+    hash::Hash,
+    text::{Text, TextHash},
+};
 
 #[derive(Clone, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq))]
@@ -21,4 +24,12 @@ impl ::core::fmt::Display for Word {
     fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         ::core::fmt::Display::fmt(&self.text, f)
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[archive(compare(PartialEq))]
+#[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
+pub struct WordHash {
+    pub kind: Hash,
+    pub text: TextHash,
 }
