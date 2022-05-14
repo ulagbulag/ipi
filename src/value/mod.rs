@@ -5,6 +5,7 @@ pub mod nonce;
 pub mod primitives;
 pub mod text;
 pub mod uuid;
+pub mod word;
 
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
