@@ -40,6 +40,15 @@ pub struct TextHash {
     pub lang: Hash,
 }
 
+impl From<Text> for TextHash {
+    fn from(value: Text) -> Self {
+        Self {
+            msg: Hash::with_str(&value.msg),
+            lang: Hash::with_str(&value.lang.to_string()),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct LanguageTag(::language_tags::LanguageTag);
 

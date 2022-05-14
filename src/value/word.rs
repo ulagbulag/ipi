@@ -33,3 +33,12 @@ pub struct WordHash {
     pub kind: Hash,
     pub text: TextHash,
 }
+
+impl From<Word> for WordHash {
+    fn from(value: Word) -> Self {
+        Self {
+            kind: Hash::with_str(&value.kind),
+            text: value.text.into(),
+        }
+    }
+}
