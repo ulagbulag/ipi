@@ -8,6 +8,15 @@ pub struct Array<A, D>(pub ::ndarray::ArcArray<A, D>)
 where
     D: Dimension;
 
+impl<A, D> From<::ndarray::ArcArray<A, D>> for Array<A, D>
+where
+    D: Dimension,
+{
+    fn from(value: ::ndarray::ArcArray<A, D>) -> Self {
+        Self(value)
+    }
+}
+
 impl<A, D> ::core::ops::Deref for Array<A, D>
 where
     D: Dimension,

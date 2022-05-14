@@ -10,6 +10,12 @@ use super::uuid::Uuid;
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]
 pub struct Nonce(pub Uuid);
 
+impl From<Uuid> for Nonce {
+    fn from(value: Uuid) -> Self {
+        Self(value)
+    }
+}
+
 impl ::core::ops::Deref for Nonce {
     type Target = Uuid;
 

@@ -84,6 +84,12 @@ impl DateTime {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NaiveDateTime(pub ::chrono::NaiveDateTime);
 
+impl From<::chrono::NaiveDateTime> for NaiveDateTime {
+    fn from(value: ::chrono::NaiveDateTime) -> Self {
+        Self(value)
+    }
+}
+
 impl From<NaiveDateTime> for NaiveDateTimeTemplate {
     fn from(value: NaiveDateTime) -> Self {
         Self {

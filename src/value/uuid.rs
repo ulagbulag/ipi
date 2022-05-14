@@ -6,6 +6,12 @@ use rkyv::{
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Uuid(pub ::uuid::Uuid);
 
+impl From<::uuid::Uuid> for Uuid {
+    fn from(value: ::uuid::Uuid) -> Self {
+        Self(value)
+    }
+}
+
 impl ::core::ops::Deref for Uuid {
     type Target = ::uuid::Uuid;
 

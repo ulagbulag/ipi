@@ -7,23 +7,6 @@ use sha2::{digest::OutputSizeUser, Digest, Sha256, Sha256VarCore};
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Hash(pub GenericArray<u8, <Sha256VarCore as OutputSizeUser>::OutputSize>);
 
-impl Hash {
-    pub fn with_bytes(bytes: &[u8]) -> Self {
-        // create a Sha256 object
-        let mut hasher = Sha256::new();
-
-        // write input message
-        hasher.update(bytes);
-
-        // read hash digest and consume hasher
-        Self(hasher.finalize())
-    }
-
-    pub fn with_str(msg: &str) -> Self {
-        Self::with_bytes(msg.as_bytes())
-    }
-}
-
 impl ::core::ops::Deref for Hash {
     type Target = GenericArray<u8, <Sha256VarCore as OutputSizeUser>::OutputSize>;
 
@@ -86,5 +69,22 @@ impl<D: Fallible + ?Sized> Deserialize<Hash, D> for <Hash as Archive>::Archived 
         Deserialize::<[u8; 32], D>::deserialize(self, deserializer)
             .map(Into::into)
             .map(Hash)
+    }
+}
+
+impl Hash {
+    pub fn with_bytes(bytes: &[u8]) -> Self {
+        // create a Sha256 object
+        let mut hasher = Sha256::new();
+
+        // write input message
+        hasher.update(bytes);
+
+        // read hash digest and consume hasher
+        Self(hasher.finalize())
+    }
+
+    pub fn with_str(msg: &str) -> Self {
+        Self::with_bytes(msg.as_bytes())
     }
 }
