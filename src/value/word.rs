@@ -6,7 +6,7 @@ use super::{
     text::{Text, TextHash},
 };
 
-#[derive(Clone, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(Clone, Default, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
 pub struct Word {

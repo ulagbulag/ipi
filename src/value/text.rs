@@ -23,6 +23,12 @@ impl ::core::fmt::Display for Text {
     }
 }
 
+impl Default for Text {
+    fn default() -> Self {
+        Self::with_en_us(String::default())
+    }
+}
+
 impl Text {
     pub fn with_en_us(msg: impl ToString) -> Self {
         Self {
