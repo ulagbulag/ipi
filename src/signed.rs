@@ -65,6 +65,14 @@ impl<T: IsSigned + ?Sized> IsSigned for ::std::boxed::Box<T> {
         T::is_signed()
     }
 }
+impl<'a, B> IsSigned for ::std::borrow::Cow<'a, B>
+where
+    B: IsSigned + ::rkyv::Serialize<Serializer> + ToOwned + Send + Sync + Sized + ?Sized + 'a,
+{
+    fn is_signed() -> bool {
+        B::is_signed()
+    }
+}
 impl<T: IsSigned> IsSigned for ::std::pin::Pin<T> {
     fn is_signed() -> bool {
         T::is_signed()
