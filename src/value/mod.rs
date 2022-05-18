@@ -4,6 +4,7 @@ pub mod hash;
 pub mod nonce;
 pub mod primitives;
 pub mod text;
+pub mod unit_interval;
 pub mod uuid;
 pub mod word;
 

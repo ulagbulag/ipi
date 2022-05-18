@@ -10,4 +10,5 @@ pub mod account;
 pub mod credit;
 pub mod metadata;
 pub mod signature;
+pub mod signed;
 pub mod value;

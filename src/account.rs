@@ -15,20 +15,12 @@ use crate::{
 ",))]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
-pub struct GuarantorSigned<T>
-where
-    T: Archive,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
+pub struct GuarantorSigned<T> {
     pub guarantor: Identity,
     pub data: GuaranteeSigned<T>,
 }
 
-impl<T> ::core::ops::Deref for GuarantorSigned<T>
-where
-    T: Archive,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
+impl<T> ::core::ops::Deref for GuarantorSigned<T> {
     type Target = GuaranteeSigned<T>;
 
     fn deref(&self) -> &Self::Target {
@@ -99,11 +91,7 @@ pub struct GuaranteeSigned<T> {
     pub data: Metadata<T>,
 }
 
-impl<T> ::core::ops::Deref for GuaranteeSigned<T>
-where
-    T: Archive,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
+impl<T> ::core::ops::Deref for GuaranteeSigned<T> {
     type Target = Metadata<T>;
 
     fn deref(&self) -> &Self::Target {
