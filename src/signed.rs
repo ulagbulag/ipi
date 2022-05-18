@@ -1,4 +1,6 @@
-use ndarray::Dimension;
+pub type Serializer = ::rkyv::ser::serializers::AllocSerializer<SERIALIZER_HEAP_SIZE>;
+
+pub const SERIALIZER_HEAP_SIZE: usize = 4096;
 
 pub trait IsSigned {
     fn is_signed() -> bool {
@@ -7,6 +9,22 @@ pub trait IsSigned {
 
     fn is_signed_dyn(&self) -> bool {
         Self::is_signed()
+    }
+
+    fn to_bytes(
+        &self,
+    ) -> Result<
+        ::rkyv::AlignedVec,
+        ::rkyv::ser::serializers::CompositeSerializerError<
+            ::core::convert::Infallible,
+            ::rkyv::ser::serializers::AllocScratchError,
+            ::rkyv::ser::serializers::SharedSerializeMapError,
+        >,
+    >
+    where
+        Self: ::rkyv::Serialize<Serializer> + Send + Sync + Sized,
+    {
+        ::rkyv::to_bytes(self)
     }
 }
 
@@ -126,7 +144,7 @@ impl<T> IsSigned for crate::metadata::Metadata<T> {
 }
 
 impl IsSigned for crate::value::ValueType {}
-impl<A, D> IsSigned for crate::value::array::Array<A, D> where D: Dimension {}
+impl<A, D: ::ndarray::Dimension> IsSigned for crate::value::array::Array<A, D> {}
 impl<A, D> IsSigned for crate::value::array::ArrayRaw<A, D> {}
 impl IsSigned for crate::value::chrono::DateTime {}
 impl IsSigned for crate::value::chrono::NaiveDateTime {}
