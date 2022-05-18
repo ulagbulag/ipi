@@ -55,7 +55,7 @@ impl From<Text> for TextHash {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct LanguageTag(::language_tags::LanguageTag);
 
 impl ::core::str::FromStr for LanguageTag {
