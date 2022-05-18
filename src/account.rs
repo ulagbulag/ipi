@@ -160,6 +160,38 @@ where
     }
 }
 
+impl<T> GuaranteeSigned<T> {
+    pub fn is_self_signed(&self) -> bool {
+        self.guarantee.account == self.data.guarantor
+    }
+
+    pub fn ensure_self_signed(&self) -> Result<()> {
+        if self.is_self_signed() {
+            Ok(())
+        } else {
+            bail!("the guarantor and the guarantor do not match")
+        }
+    }
+}
+
+impl<T> ArchivedGuaranteeSigned<T>
+where
+    T: Archive + ::core::fmt::Debug + PartialEq,
+    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
+{
+    pub fn is_self_signed(&self) -> bool {
+        self.guarantee.account == self.data.guarantor
+    }
+
+    pub fn ensure_self_signed(&self) -> Result<()> {
+        if self.is_self_signed() {
+            Ok(())
+        } else {
+            bail!("the guarantor and the guarantor do not match")
+        }
+    }
+}
+
 pub trait Signer<T>
 where
     T: Serialize<SignatureSerializer>,
