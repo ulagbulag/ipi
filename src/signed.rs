@@ -4,6 +4,10 @@ pub trait IsSigned {
     fn is_signed() -> bool {
         false
     }
+
+    fn is_signed_dyn(&self) -> bool {
+        Self::is_signed()
+    }
 }
 
 impl IsSigned for () {}
