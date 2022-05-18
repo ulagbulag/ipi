@@ -50,6 +50,29 @@ impl IsSigned for ::std::net::SocketAddr {}
 impl IsSigned for ::std::net::SocketAddrV4 {}
 impl IsSigned for ::std::net::SocketAddrV6 {}
 
+macro_rules! impl_for_tuples {
+    ( $( $ty:ident ,)* ) => {
+        impl< $( $ty: IsSigned ,)* > IsSigned for ( $( $ty ,)* ) {}
+    };
+}
+
+impl_for_tuples!(T1,);
+impl_for_tuples!(T1, T2,);
+impl_for_tuples!(T1, T2, T3,);
+impl_for_tuples!(T1, T2, T3, T4,);
+impl_for_tuples!(T1, T2, T3, T4, T5,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15,);
+impl_for_tuples!(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16,);
+
 impl<T: IsSigned + ?Sized> IsSigned for &T {
     fn is_signed() -> bool {
         T::is_signed()
