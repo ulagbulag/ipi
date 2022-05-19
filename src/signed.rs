@@ -11,16 +11,7 @@ pub trait IsSigned {
         Self::is_signed()
     }
 
-    fn to_bytes(
-        &self,
-    ) -> Result<
-        ::rkyv::AlignedVec,
-        ::rkyv::ser::serializers::CompositeSerializerError<
-            ::core::convert::Infallible,
-            ::rkyv::ser::serializers::AllocScratchError,
-            ::rkyv::ser::serializers::SharedSerializeMapError,
-        >,
-    >
+    fn to_bytes(&self) -> Result<::rkyv::AlignedVec, <Serializer as ::rkyv::Fallible>::Error>
     where
         Self: ::rkyv::Serialize<Serializer> + Send + Sync + Sized,
     {
