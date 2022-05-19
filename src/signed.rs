@@ -35,6 +35,7 @@ impl IsSigned for u64 {}
 impl IsSigned for u128 {}
 impl IsSigned for usize {}
 impl IsSigned for str {}
+impl IsSigned for String {}
 
 impl<T: ?Sized> IsSigned for ::core::marker::PhantomData<T> {}
 impl IsSigned for ::std::net::SocketAddr {}
