@@ -63,21 +63,6 @@ where
     }
 }
 
-impl<T> Verifier for ArchivedGuarantorSigned<T>
-where
-    T: Archive + Serialize<SignatureSerializer> + ::core::fmt::Debug + PartialEq,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        if self.guarantor.account != self.data.data.guarantor {
-            bail!("guarantor mismatching");
-        }
-
-        self.guarantor.verify(&self.data)?;
-        self.data.verify(guarantor)
-    }
-}
-
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
@@ -119,23 +104,6 @@ impl<T> Verifier for GuaranteeSigned<T>
 where
     T: Archive + Serialize<SignatureSerializer>,
     <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        if let Some(guarantor) = guarantor {
-            if self.data.guarantor != guarantor {
-                bail!("guarantor mismatching");
-            }
-        }
-
-        self.guarantee.verify(&self.data)
-    }
-}
-
-impl<T> Verifier for ArchivedGuaranteeSigned<T>
-where
-    T: Archive + Serialize<SignatureSerializer> + ::core::fmt::Debug + PartialEq,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-    <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
 {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
         if let Some(guarantor) = guarantor {
@@ -244,13 +212,6 @@ impl Identity {
         use ed25519_dalek::Verifier;
 
         self.account.public_key.verify(data, &self.signature)?;
-        Ok(())
-    }
-}
-
-impl ArchivedIdentity {
-    fn verify<T>(&self, data: &T) -> Result<()> {
-        // TODO: to be implemented
         Ok(())
     }
 }

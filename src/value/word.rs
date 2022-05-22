@@ -11,6 +11,7 @@ use super::{
 #[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
 pub struct Word {
     pub kind: String,
+    pub parent: Option<String>,
     pub text: Text,
 }
 
@@ -31,6 +32,7 @@ impl ::core::fmt::Display for Word {
 #[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
 pub struct WordHash {
     pub kind: Hash,
+    pub parent: Option<Hash>,
     pub text: TextHash,
 }
 
@@ -38,6 +40,7 @@ impl From<Word> for WordHash {
     fn from(value: Word) -> Self {
         Self {
             kind: Hash::with_str(&value.kind),
+            parent: value.parent.map(|e| Hash::with_str(&e)),
             text: value.text.into(),
         }
     }

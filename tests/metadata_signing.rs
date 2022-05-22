@@ -2,8 +2,9 @@ use bytecheck::CheckBytes;
 use ipi::{
     account::{Account, GuarantorSigned, Signer, Verifier},
     metadata::Metadata,
+    signed::SERIALIZER_HEAP_SIZE,
 };
-use rkyv::{Archive, Deserialize, Serialize};
+use rkyv::{de::deserializers::SharedDeserializeMap, Archive, Deserialize, Serialize};
 
 #[test]
 fn test_simple() {
@@ -40,9 +41,11 @@ fn test_simple() {
     let () = signed.verify(Some(guarantor.account_ref())).unwrap();
 
     // archive
-    let bytes = ::rkyv::to_bytes::<_, 4096>(&signed).unwrap();
+    let bytes = ::rkyv::to_bytes::<_, SERIALIZER_HEAP_SIZE>(&signed).unwrap();
     let archived = ::rkyv::check_archived_root::<GuarantorSigned<MyData>>(&bytes[..]).unwrap();
 
-    // verify
-    let () = archived.verify(Some(guarantor.account_ref())).unwrap();
+    // deserialize
+    let deserialized: GuarantorSigned<MyData> =
+        Deserialize::deserialize(archived, &mut SharedDeserializeMap::default()).unwrap();
+    assert_eq!(&signed, &deserialized);
 }

@@ -28,12 +28,6 @@ impl Verifier for CreditRating {
     }
 }
 
-impl Verifier for ArchivedCreditRating {
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        self.0.verify(guarantor)
-    }
-}
-
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
