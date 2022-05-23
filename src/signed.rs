@@ -178,5 +178,3 @@ impl IsSigned for crate::value::text::Text {}
 impl IsSigned for crate::value::text::TextHash {}
 impl IsSigned for crate::value::unit_interval::UnitInterval {}
 impl IsSigned for crate::value::uuid::Uuid {}
-impl IsSigned for crate::value::word::Word {}
-impl IsSigned for crate::value::word::WordHash {}
