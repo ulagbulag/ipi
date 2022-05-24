@@ -33,6 +33,8 @@ impl IsSigned for u16 {}
 impl IsSigned for u32 {}
 impl IsSigned for u64 {}
 impl IsSigned for u128 {}
+impl IsSigned for f32 {}
+impl IsSigned for f64 {}
 impl IsSigned for usize {}
 impl IsSigned for str {}
 impl IsSigned for String {}
