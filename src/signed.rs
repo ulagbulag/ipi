@@ -168,6 +168,7 @@ impl<T> IsSigned for crate::metadata::Metadata<T> {
     }
 }
 
+impl IsSigned for crate::value::Value {}
 impl IsSigned for crate::value::ValueType {}
 impl<A, D: ::ndarray::Dimension> IsSigned for crate::value::array::Array<A, D> {}
 impl<A, D> IsSigned for crate::value::array::ArrayRaw<A, D> {}
