@@ -17,21 +17,22 @@ repository = "https://github.com/ulagbulag-village/ipi"
 anyhow = { version = "1.0", features = ["backtrace"] }
 base58 = "0.2"
 bytecheck = "0.6"
-chrono = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
 ed25519-dalek = { git = "https://github.com/ulagbulag-village/ed25519-dalek.git", features = [
     "alloc",
     "pem",
     "pkcs8",
+    "serde",
 ] }
-fixed = "1.15"
-generic-array = "0.14"
-language-tags = "0.3"
-ndarray = "0.15"
-ordered-float = "3.0"
+fixed = { version = "1.15", features = ["serde"] }
+generic-array = { version = "0.14", features = ["serde"] }
+language-tags = { version = "0.3", features = ["serde"] }
+ndarray = { version = "0.15", features = ["serde"] }
+ordered-float = { version = "3.0", features = ["serde"] }
 rand = "0.8"
 rkyv = { version = "0.7", features = ["archive_be"] }
 sha2 = "0.10"
-uuid = { version = "1.0", features = ["v4"] }
+uuid = { version = "1.0", features = ["serde", "v4"] }
 
 [dev-dependencies]
 rkyv = { version = "0.7", features = ["archive_be", "validation"] }
