@@ -8,7 +8,7 @@ use rkyv::{de::deserializers::SharedDeserializeMap, Archive, Deserialize, Serial
 
 #[test]
 fn test_simple() {
-    #[derive(Debug, PartialEq, Archive, Serialize, Deserialize)]
+    #[derive(Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
     #[archive(compare(PartialEq))]
     #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
     pub struct MyData {
@@ -38,7 +38,7 @@ fn test_simple() {
     let signed = GuarantorSigned::sign(&guarantor, signed).unwrap();
 
     // verify
-    let () = signed.verify(Some(guarantor.account_ref())).unwrap();
+    signed.verify(Some(guarantor.account_ref())).unwrap();
 
     // archive
     let bytes = ::rkyv::to_bytes::<_, SERIALIZER_HEAP_SIZE>(&signed).unwrap();

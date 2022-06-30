@@ -3,7 +3,7 @@ use bytecheck::CheckBytes;
 use ndarray::{Dim, Dimension, Ix, IxDyn};
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Array<A, D>(pub ::ndarray::ArcArray<A, D>)
 where
     D: Dimension;
@@ -175,7 +175,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Archive, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
 #[archive(bound(archive = "
     <Vec<A> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
     <D as Archive>::Archived: ::core::fmt::Debug + PartialEq,
@@ -193,19 +193,19 @@ mod tests {
 
     #[test]
     fn test_array_rkyv() {
-        #[derive(Debug, PartialEq, Archive, Serialize, Deserialize)]
+        #[derive(Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
         #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
         pub struct MyScalar {
             data: Array<u8, ndarray::Ix0>,
         }
 
-        #[derive(Debug, PartialEq, Archive, Serialize, Deserialize)]
+        #[derive(Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
         #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
         pub struct MyVector {
             data: Array<i32, ndarray::Ix1>,
         }
 
-        #[derive(Debug, PartialEq, Archive, Serialize, Deserialize)]
+        #[derive(Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
         #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
         pub struct MyMatrix {
             data: Array<u64, ndarray::Ix2>,
