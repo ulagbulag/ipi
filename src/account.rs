@@ -166,7 +166,7 @@ where
     T: Verifier,
 {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        (&**self).verify(guarantor)
+        (**self).verify(guarantor)
     }
 }
 
@@ -175,7 +175,7 @@ where
     T: Verifier,
 {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        (&**self).verify(guarantor)
+        (**self).verify(guarantor)
     }
 }
 
@@ -185,7 +185,7 @@ where
     <T as ::core::ops::Deref>::Target: Verifier,
 {
     fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
-        (&**self).verify(guarantor)
+        (**self).verify(guarantor)
     }
 }
 
@@ -278,6 +278,17 @@ impl Account {
     pub fn account_ref(&self) -> AccountRef {
         AccountRef {
             public_key: self.keypair.public_key(),
+        }
+    }
+
+    /// # Safety
+    /// The source code itself is completely safe.
+    /// However, if two or more keys exist at the same time by calling this function,
+    /// some fatal security flaw such as key leakage may occur.
+    /// So please be careful when using it.
+    pub unsafe fn clone(&mut self) -> Self {
+        Self {
+            keypair: self.keypair.clone(),
         }
     }
 
