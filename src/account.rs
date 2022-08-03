@@ -281,17 +281,6 @@ impl Account {
         }
     }
 
-    /// # Safety
-    /// The source code itself is completely safe.
-    /// However, if two or more keys exist at the same time by calling this function,
-    /// some fatal security flaw such as key leakage may occur.
-    /// So please be careful when using it.
-    pub unsafe fn clone(&self) -> Self {
-        Self {
-            keypair: self.keypair.clone(),
-        }
-    }
-
     pub(crate) fn sign<T>(&self, data: &T) -> Result<Identity>
     where
         T: Serialize<SignatureSerializer>,
