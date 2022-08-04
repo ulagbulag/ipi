@@ -9,7 +9,7 @@ use crate::{
     metadata::{Metadata, MetadataBuilder},
     signature::SignatureSerializer,
     signed::IsSigned,
-    value::{chrono::DateTime, hash::Hash},
+    value::chrono::DateTime,
 };
 
 #[derive(
@@ -108,11 +108,7 @@ impl<T> DataBuilder<T> {
         T: IsSigned + Archive + Serialize<SignatureSerializer>,
         <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
     {
-        let metadata = self.metadata.build(
-            account,
-            guarantor,
-            Hash::with_bytes(&::rkyv::to_bytes(data)?),
-        )?;
+        let metadata = self.metadata.build(account, guarantor, data)?;
 
         Ok(Data { metadata, data })
     }

@@ -4,6 +4,8 @@ use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
     account::{Account, AccountRef, GuaranteeSigned, Signer},
+    signature::SignatureSerializer,
+    signed::IsSigned,
     value::{chrono::DateTime, hash::Hash, nonce::Nonce},
 };
 
@@ -38,7 +40,7 @@ impl MetadataBuilder {
         self
     }
 
-    pub fn build_unsigned(self, guarantor: AccountRef, hash: Hash) -> Metadata {
+    pub fn build_unsigned_raw(self, guarantor: AccountRef, hash: Hash) -> Metadata {
         Metadata {
             nonce: Nonce::generate(),
             created_date: DateTime::now(),
@@ -48,12 +50,28 @@ impl MetadataBuilder {
         }
     }
 
-    pub fn build(
+    pub fn build_unsigned<T>(self, guarantor: AccountRef, data: &T) -> Result<Metadata>
+    where
+        T: IsSigned + Archive + Serialize<SignatureSerializer>,
+        <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
+    {
+        ::rkyv::to_bytes(data)
+            .map(|hash| Hash::with_bytes(&hash))
+            .map(|hash| self.build_unsigned_raw(guarantor, hash))
+            .map_err(Into::into)
+    }
+
+    pub fn build<T>(
         self,
         account: &Account,
         guarantor: AccountRef,
-        hash: Hash,
-    ) -> Result<GuaranteeSigned> {
-        Signer::sign(account, self.build_unsigned(guarantor, hash))
+        data: &T,
+    ) -> Result<GuaranteeSigned>
+    where
+        T: IsSigned + Archive + Serialize<SignatureSerializer>,
+        <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
+    {
+        self.build_unsigned(guarantor, data)
+            .and_then(|metadata| Signer::sign(account, metadata))
     }
 }
