@@ -4,18 +4,17 @@ use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
     account::{AccountRef, GuarantorSigned, Verifier},
+    data::Data,
     value::primitives::U64,
 };
 
-#[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
-)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize)]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
-pub struct CreditRating(pub GuarantorSigned<CreditRatingPayload>);
+pub struct CreditRating(pub Data<GuarantorSigned, CreditRatingPayload>);
 
 impl ::core::ops::Deref for CreditRating {
-    type Target = GuarantorSigned<CreditRatingPayload>;
+    type Target = Data<GuarantorSigned, CreditRatingPayload>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -23,7 +22,7 @@ impl ::core::ops::Deref for CreditRating {
 }
 
 impl Verifier for CreditRating {
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()> {
         self.0.verify(guarantor)
     }
 }

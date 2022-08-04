@@ -150,23 +150,28 @@ impl<T: IsSigned, E> IsSigned for ::core::result::Result<T, E> {
 
 impl IsSigned for crate::account::Account {}
 impl IsSigned for crate::account::AccountRef {}
-impl<T> IsSigned for crate::account::GuaranteeSigned<T> {
+impl IsSigned for crate::account::GuaranteeSigned {
     fn is_signed() -> bool {
         true
     }
 }
-impl<T> IsSigned for crate::account::GuarantorSigned<T> {
+impl IsSigned for crate::account::GuarantorSigned {
     fn is_signed() -> bool {
         true
     }
 }
 impl IsSigned for crate::credit::CreditRating {}
 impl IsSigned for crate::credit::CreditRatingPayload {}
-impl<T> IsSigned for crate::metadata::Metadata<T> {
+impl<Metadata, RawData> IsSigned for crate::data::Data<Metadata, RawData>
+where
+    Metadata: crate::account::Verifier,
+    RawData: IsSigned,
+{
     fn is_signed() -> bool {
         true
     }
 }
+impl IsSigned for crate::metadata::Metadata {}
 
 impl IsSigned for crate::value::Value {}
 impl IsSigned for crate::value::ValueType {}

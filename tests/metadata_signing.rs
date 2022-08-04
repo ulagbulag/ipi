@@ -1,20 +1,23 @@
 use bytecheck::CheckBytes;
 use ipi::{
     account::{Account, GuarantorSigned, Signer, Verifier},
-    metadata::Metadata,
-    signed::SERIALIZER_HEAP_SIZE,
+    data::Data,
+    signed::{IsSigned, SERIALIZER_HEAP_SIZE},
+    value::hash::Hash,
 };
 use rkyv::{de::deserializers::SharedDeserializeMap, Archive, Deserialize, Serialize};
 
 #[test]
 fn test_simple() {
-    #[derive(Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
+    #[derive(Clone, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
     #[archive(compare(PartialEq))]
     #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
     pub struct MyData {
         pub msg: String,
         pub num: u64,
     }
+
+    impl IsSigned for MyData {}
 
     // create a data
     let data = MyData {
@@ -23,7 +26,7 @@ fn test_simple() {
     };
 
     // create a builder
-    let builder = Metadata::builder();
+    let builder = Data::builder();
 
     // create client pair
     let guarantee = Account::generate();
@@ -31,21 +34,23 @@ fn test_simple() {
 
     // sign as guarantee
     let signed = builder
-        .build(&guarantee, guarantor.account_ref(), data)
+        .build(&guarantee, guarantor.account_ref(), &data)
         .unwrap();
 
     // sign as guarantor
-    let signed = GuarantorSigned::sign(&guarantor, signed).unwrap();
+    let signed = signed.sign(&guarantor).unwrap();
+    let signed = signed.to_owned();
 
     // verify
-    signed.verify(Some(guarantor.account_ref())).unwrap();
+    signed.verify(Some(&guarantor.account_ref())).unwrap();
 
     // archive
     let bytes = ::rkyv::to_bytes::<_, SERIALIZER_HEAP_SIZE>(&signed).unwrap();
-    let archived = ::rkyv::check_archived_root::<GuarantorSigned<MyData>>(&bytes[..]).unwrap();
+    let archived =
+        ::rkyv::check_archived_root::<Data<GuarantorSigned, MyData>>(&bytes[..]).unwrap();
 
     // deserialize
-    let deserialized: GuarantorSigned<MyData> =
+    let deserialized: Data<GuarantorSigned, MyData> =
         Deserialize::deserialize(archived, &mut SharedDeserializeMap::default()).unwrap();
     assert_eq!(&signed, &deserialized);
 }
@@ -67,22 +72,24 @@ fn test_strict() {
         ),
         expiration_date: None,
         guarantor: account.account_ref(),
-        data: 42,
+        hash: Hash::with_bytes(&42i32.to_le_bytes()),
     };
 
     let signed = ::ipi::account::GuaranteeSigned::sign(&account, metadata).unwrap();
     let signed = ::rkyv::to_bytes::<_, 4096>(&signed).unwrap();
 
     let bytes = &[
-        85, 14, 132, 0, 226, 155, 65, 212, 167, 22, 68, 102, 85, 68, 0, 0, 0, 0, 0, 0, 24, 250,
-        181, 234, 16, 84, 232, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 42, 178, 127, 84, 7, 76, 6, 240, 252, 66, 76, 107, 153, 78,
-        227, 199, 47, 255, 205, 198, 205, 169, 240, 131, 27, 107, 97, 3, 20, 99, 143, 106, 117, 0,
-        0, 0, 0, 178, 127, 84, 7, 76, 6, 240, 252, 66, 76, 107, 153, 78, 227, 199, 47, 255, 205,
-        198, 205, 169, 240, 131, 27, 107, 97, 3, 20, 99, 143, 106, 117, 20, 155, 255, 188, 70, 111,
-        125, 199, 143, 89, 40, 85, 122, 83, 50, 246, 101, 130, 239, 19, 255, 248, 252, 51, 33, 3,
-        53, 39, 207, 68, 254, 105, 94, 185, 75, 147, 107, 196, 15, 27, 11, 90, 199, 243, 72, 232,
-        214, 40, 60, 73, 20, 91, 240, 36, 152, 59, 252, 45, 63, 65, 220, 234, 217, 15,
+        178, 127, 84, 7, 76, 6, 240, 252, 66, 76, 107, 153, 78, 227, 199, 47, 255, 205, 198, 205,
+        169, 240, 131, 27, 107, 97, 3, 20, 99, 143, 106, 117, 110, 214, 251, 77, 141, 38, 50, 22,
+        77, 245, 247, 199, 89, 229, 225, 246, 221, 188, 119, 163, 219, 108, 54, 93, 175, 144, 51,
+        108, 144, 108, 251, 233, 124, 196, 242, 190, 19, 94, 181, 3, 69, 178, 217, 173, 84, 29,
+        123, 33, 212, 13, 59, 141, 37, 177, 94, 39, 95, 214, 164, 42, 222, 237, 29, 11, 0, 0, 68,
+        85, 102, 68, 22, 167, 212, 65, 155, 226, 0, 132, 14, 85, 234, 181, 250, 24, 0, 0, 0, 0,
+        128, 232, 84, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 178, 127, 84, 7, 76, 6, 240, 252, 66, 76, 107, 153, 78, 227, 199, 47, 255, 205,
+        198, 205, 169, 240, 131, 27, 107, 97, 3, 20, 99, 143, 106, 117, 232, 164, 178, 238, 126,
+        222, 121, 163, 175, 179, 50, 181, 182, 204, 61, 149, 42, 101, 253, 140, 255, 184, 151, 245,
+        209, 128, 22, 87, 124, 51, 215, 204,
     ];
     assert_eq!(signed.as_slice(), bytes);
 }

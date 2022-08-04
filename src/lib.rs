@@ -9,6 +9,7 @@ pub extern crate uuid;
 
 pub mod account;
 pub mod credit;
+pub mod data;
 pub mod metadata;
 pub mod signature;
 pub mod signed;

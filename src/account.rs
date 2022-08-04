@@ -10,30 +10,23 @@ use crate::{
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[archive(bound(archive = "
-    <GuaranteeSigned<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-",))]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
-pub struct GuarantorSigned<T> {
+pub struct GuarantorSigned {
     pub guarantor: Identity,
-    pub data: GuaranteeSigned<T>,
+    pub data: GuaranteeSigned,
 }
 
-impl<T> ::core::ops::Deref for GuarantorSigned<T> {
-    type Target = GuaranteeSigned<T>;
+impl ::core::ops::Deref for GuarantorSigned {
+    type Target = GuaranteeSigned;
 
     fn deref(&self) -> &Self::Target {
         &self.data
     }
 }
 
-impl<T> Signer<GuaranteeSigned<T>> for GuarantorSigned<T>
-where
-    T: ::core::fmt::Debug + PartialEq + Archive + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
-    fn sign(account: &Account, data: GuaranteeSigned<T>) -> Result<Self>
+impl Signer<GuaranteeSigned> for GuarantorSigned {
+    fn sign(account: &Account, data: GuaranteeSigned) -> Result<Self>
     where
         Self: Sized,
     {
@@ -48,12 +41,8 @@ where
     }
 }
 
-impl<T> Verifier for GuarantorSigned<T>
-where
-    T: Archive + Serialize<SignatureSerializer> + ::core::fmt::Debug + PartialEq,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+impl Verifier for GuarantorSigned {
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()> {
         if self.guarantor.account != self.data.data.guarantor {
             bail!("guarantor mismatching");
         }
@@ -66,30 +55,23 @@ where
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[archive(bound(archive = "
-    <Metadata<T> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-",))]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
-pub struct GuaranteeSigned<T> {
+pub struct GuaranteeSigned {
     pub guarantee: Identity,
-    pub data: Metadata<T>,
+    pub data: Metadata,
 }
 
-impl<T> ::core::ops::Deref for GuaranteeSigned<T> {
-    type Target = Metadata<T>;
+impl ::core::ops::Deref for GuaranteeSigned {
+    type Target = Metadata;
 
     fn deref(&self) -> &Self::Target {
         &self.data
     }
 }
 
-impl<T> Signer<Metadata<T>> for GuaranteeSigned<T>
-where
-    T: Archive + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
-    fn sign(account: &Account, data: Metadata<T>) -> Result<Self>
+impl Signer<Metadata> for GuaranteeSigned {
+    fn sign(account: &Account, data: Metadata) -> Result<Self>
     where
         Self: Sized,
     {
@@ -100,14 +82,10 @@ where
     }
 }
 
-impl<T> Verifier for GuaranteeSigned<T>
-where
-    T: Archive + Serialize<SignatureSerializer>,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+impl Verifier for GuaranteeSigned {
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()> {
         if let Some(guarantor) = guarantor {
-            if self.data.guarantor != guarantor {
+            if &self.data.guarantor != guarantor {
                 bail!("guarantor mismatching");
             }
         }
@@ -116,7 +94,7 @@ where
     }
 }
 
-impl<T> GuaranteeSigned<T> {
+impl GuaranteeSigned {
     pub fn is_self_signed(&self) -> bool {
         self.guarantee.account == self.data.guarantor
     }
@@ -130,11 +108,7 @@ impl<T> GuaranteeSigned<T> {
     }
 }
 
-impl<T> ArchivedGuaranteeSigned<T>
-where
-    T: Archive + ::core::fmt::Debug + PartialEq,
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-{
+impl ArchivedGuaranteeSigned {
     pub fn is_self_signed(&self) -> bool {
         self.guarantee.account == self.data.guarantor
     }
@@ -158,14 +132,14 @@ where
 }
 
 pub trait Verifier {
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()>;
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()>;
 }
 
 impl<T> Verifier for &T
 where
     T: Verifier,
 {
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()> {
         (**self).verify(guarantor)
     }
 }
@@ -174,7 +148,7 @@ impl<T> Verifier for Box<T>
 where
     T: Verifier,
 {
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()> {
         (**self).verify(guarantor)
     }
 }
@@ -184,7 +158,7 @@ where
     T: ::core::ops::Deref,
     <T as ::core::ops::Deref>::Target: Verifier,
 {
-    fn verify(&self, guarantor: Option<AccountRef>) -> Result<()> {
+    fn verify(&self, guarantor: Option<&AccountRef>) -> Result<()> {
         (**self).verify(guarantor)
     }
 }

@@ -1,54 +1,38 @@
-use std::marker::PhantomData;
-
 use anyhow::Result;
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
 use crate::{
     account::{Account, AccountRef, GuaranteeSigned, Signer},
-    signature::SignatureSerializer,
-    value::{chrono::DateTime, nonce::Nonce},
+    value::{chrono::DateTime, hash::Hash, nonce::Nonce},
 };
 
 #[derive(
     Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
 )]
-#[archive(bound(archive = "
-    <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-"))]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
-pub struct Metadata<T> {
+pub struct Metadata {
     pub nonce: Nonce,
     pub created_date: DateTime,
     pub expiration_date: Option<DateTime>,
     pub guarantor: AccountRef,
-    pub data: T,
+    pub hash: Hash,
 }
 
-impl<T> ::core::ops::Deref for Metadata<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.data
-    }
-}
-
-impl<T> Metadata<T> {
-    pub fn builder() -> MetadataBuilder<T> {
+impl Metadata {
+    pub fn builder() -> MetadataBuilder {
         MetadataBuilder {
             expiration_date: None,
-            _data: Default::default(),
         }
     }
 }
 
-pub struct MetadataBuilder<T> {
+pub struct MetadataBuilder {
     expiration_date: Option<DateTime>,
-    _data: PhantomData<T>,
 }
 
-impl<T> MetadataBuilder<T> {
+impl MetadataBuilder {
     pub fn expiration_date(mut self, date: DateTime) -> Self {
         self.expiration_date = Some(date);
         self
@@ -58,18 +42,14 @@ impl<T> MetadataBuilder<T> {
         self,
         account: &Account,
         guarantor: AccountRef,
-        data: T,
-    ) -> Result<GuaranteeSigned<T>>
-    where
-        T: Archive + Serialize<SignatureSerializer>,
-        <T as Archive>::Archived: ::core::fmt::Debug + PartialEq,
-    {
+        hash: Hash,
+    ) -> Result<GuaranteeSigned> {
         let metadata = Metadata {
             nonce: Nonce::generate(),
             created_date: DateTime::now(),
             expiration_date: self.expiration_date,
             guarantor,
-            data,
+            hash,
         };
 
         Signer::sign(account, metadata)
