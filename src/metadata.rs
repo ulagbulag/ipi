@@ -38,20 +38,22 @@ impl MetadataBuilder {
         self
     }
 
+    pub fn build_unsigned(self, guarantor: AccountRef, hash: Hash) -> Metadata {
+        Metadata {
+            nonce: Nonce::generate(),
+            created_date: DateTime::now(),
+            expiration_date: self.expiration_date,
+            guarantor,
+            hash,
+        }
+    }
+
     pub fn build(
         self,
         account: &Account,
         guarantor: AccountRef,
         hash: Hash,
     ) -> Result<GuaranteeSigned> {
-        let metadata = Metadata {
-            nonce: Nonce::generate(),
-            created_date: DateTime::now(),
-            expiration_date: self.expiration_date,
-            guarantor,
-            hash,
-        };
-
-        Signer::sign(account, metadata)
+        Signer::sign(account, self.build_unsigned(guarantor, hash))
     }
 }
