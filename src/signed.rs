@@ -77,6 +77,11 @@ impl<T: IsSigned> IsSigned for [T] {
         T::is_signed()
     }
 }
+impl<T: IsSigned, const N: usize> IsSigned for [T; N] {
+    fn is_signed() -> bool {
+        T::is_signed()
+    }
+}
 impl<T: IsSigned + ?Sized> IsSigned for ::std::boxed::Box<T> {
     fn is_signed() -> bool {
         T::is_signed()
