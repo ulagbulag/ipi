@@ -12,7 +12,9 @@ use crate::{
     value::{chrono::DateTime, hash::Hash},
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+)]
 #[archive(bound(archive = "
     Metadata: Archive,
     <Metadata as Archive>::Archived: ::core::fmt::Debug + PartialEq,
