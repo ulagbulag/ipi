@@ -34,6 +34,12 @@ impl From<&Hash> for [u8; Hash::SIZE] {
     }
 }
 
+impl Into<Vec<u8>> for Hash {
+    fn into(self) -> Vec<u8> {
+        self.0.to_bytes()
+    }
+}
+
 impl ToString for Hash {
     fn to_string(&self) -> String {
         self.0.to_string()
