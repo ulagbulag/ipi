@@ -3,40 +3,20 @@ use cid::{
     Cid,
 };
 use quick_protobuf::{MessageWrite, Writer};
-use rkyv::{vec::ArchivedVec, Archive, Deserialize, Fallible, Serialize};
+use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Hash(pub Cid);
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Hash(Cid);
 
-impl ::core::ops::Deref for Hash {
-    type Target = Cid;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl PartialEq<Hash> for [u8] {
-    fn eq(&self, other: &Hash) -> bool {
-        self == other.0.to_bytes()
-    }
-}
-
-impl PartialOrd<Hash> for [u8] {
-    fn partial_cmp(&self, other: &Hash) -> Option<::core::cmp::Ordering> {
-        self.partial_cmp(other.0.to_bytes().as_slice())
-    }
-}
-
-impl PartialEq<Hash> for ArchivedVec<u8> {
+impl PartialEq<Hash> for [u8; Hash::SIZE] {
     fn eq(&self, other: &Hash) -> bool {
         self.as_slice() == other.0.to_bytes()
     }
 }
 
-impl PartialOrd<Hash> for ArchivedVec<u8> {
+impl PartialOrd<Hash> for [u8; Hash::SIZE] {
     fn partial_cmp(&self, other: &Hash) -> Option<::core::cmp::Ordering> {
-        self.partial_cmp(&other.0.to_bytes())
+        self.as_slice().partial_cmp(other.0.to_bytes().as_slice())
     }
 }
 
@@ -48,11 +28,9 @@ impl ::core::str::FromStr for Hash {
     }
 }
 
-impl TryFrom<&[u8]> for Hash {
-    type Error = ::anyhow::Error;
-
-    fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        Cid::try_from(bytes).map(Self).map_err(Into::into)
+impl From<&Hash> for [u8; Hash::SIZE] {
+    fn from(hash: &Hash) -> Self {
+        hash.0.to_bytes().as_slice().try_into().unwrap()
     }
 }
 
@@ -63,12 +41,12 @@ impl ToString for Hash {
 }
 
 impl Archive for Hash {
-    type Archived = <Vec<u8> as Archive>::Archived;
-    type Resolver = <Vec<u8> as Archive>::Resolver;
+    type Archived = <[u8; Hash::SIZE] as Archive>::Archived;
+    type Resolver = <[u8; Hash::SIZE] as Archive>::Resolver;
 
     #[inline]
     unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-        <Vec<u8>>::from(self.0).resolve(pos, resolver, out)
+        <[u8; Hash::SIZE]>::from(self).resolve(pos, resolver, out)
     }
 }
 
@@ -78,16 +56,16 @@ where
 {
     #[inline]
     fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-        self.0.to_bytes().serialize(serializer)
+        <[u8; Hash::SIZE]>::from(self).serialize(serializer)
     }
 }
 
 impl<D: Fallible + ?Sized> Deserialize<Hash, D> for <Hash as Archive>::Archived {
     #[inline]
     fn deserialize(&self, deserializer: &mut D) -> Result<Hash, D::Error> {
-        Deserialize::<Vec<u8>, D>::deserialize(self, deserializer)
+        Deserialize::<[u8; Hash::SIZE], D>::deserialize(self, deserializer)
             // FIXME: handle Cid parsing errors
-            .map(|bytes| Cid::try_from(bytes).unwrap())
+            .map(|bytes| Cid::try_from(bytes.as_slice()).unwrap())
             .map(Hash)
     }
 }
@@ -104,6 +82,9 @@ impl Hash {
 
     /// DAG-PB multicodec code
     const CODEC_DAG_PB: u64 = 0x70;
+
+    /// Hash size
+    const SIZE: usize = 32 + 4;
 
     pub fn with_bytes(bytes: &[u8]) -> Self {
         let level = {
