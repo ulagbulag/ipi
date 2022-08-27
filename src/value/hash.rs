@@ -256,7 +256,7 @@ impl Hasher {
     }
 
     pub const fn len(&self) -> usize {
-        &self.len
+        self.len
     }
 
     pub fn update(&mut self, mut bytes: &[u8]) {
