@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use cid::{
     multihash::{Code, MultihashDigest},
     Cid,
@@ -137,17 +139,22 @@ impl Hash {
             links: bytes
                 .chunks(chunk_size)
                 .map(|chunk| {
-                    let (hash, size) = Self::with_bytes_dag(chunk, sublevel);
+                    let (hash, dag_size) = Self::with_bytes_dag(chunk, sublevel);
 
                     ::unixfs::PBLink {
                         Hash: Some(hash.0.to_bytes().into()),
                         Name: Some(Default::default()),
-                        Tsize: Some(chunk.len() as u64 + size),
+                        Tsize: Some(chunk.len() as u64 + dag_size),
                     }
                 })
                 .collect(),
         };
 
+        // compute CID
+        Self::with_bytes_dag_raw(&node)
+    }
+
+    fn with_bytes_dag_raw(node: &::unixfs::FlatUnixFs) -> (Self, u64) {
         // read hash digest
         let buf = {
             let mut buf = Vec::new();
@@ -180,5 +187,144 @@ impl Hash {
 
     pub fn with_str(msg: &str) -> Self {
         Self::with_bytes(msg.as_bytes())
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Hasher {
+    buf: Vec<u8>,
+    len: usize,
+    nodes: Vec<::unixfs::FlatUnixFs<'static>>,
+}
+
+impl Hasher {
+    fn push(&mut self, sublevel: usize, chunk_size: u64, hash: Hash, dag_size: u64) {
+        // reserve a slot in the tree
+        if sublevel == 0 {
+            for sublevel in 0..self.nodes.len() {
+                let node = self.nodes.get(sublevel).unwrap();
+
+                // flush the node
+                if node.links.len() == Hash::MAX_LINKS {
+                    // read hash digest
+                    let chunk_size = node.data.filesize.unwrap();
+                    let (hash, dag_size) = Hash::with_bytes_dag_raw(&node);
+
+                    // update parent
+                    self.push(sublevel + 1, chunk_size, hash, dag_size);
+
+                    let mut node = self.nodes.get_mut(sublevel).unwrap();
+
+                    // update the UnixFS Data
+                    node.data.blocksizes.clear();
+                    node.data.filesize = Some(0);
+
+                    // update the Links
+                    node.links.clear();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let node = match self.nodes.get_mut(sublevel) {
+            Some(node) => node,
+            None => {
+                // note: skipping 2 or more levels are illegal!
+                self.nodes.push(::unixfs::FlatUnixFs {
+                    data: ::unixfs::UnixFs {
+                        Type: ::unixfs::UnixFsType::File,
+                        filesize: Some(0),
+                        ..Default::default()
+                    },
+                    links: Default::default(),
+                });
+                self.nodes.get_mut(sublevel).unwrap()
+            }
+        };
+
+        // update the UnixFS Data
+        node.data.blocksizes.push(chunk_size);
+        *node.data.filesize.as_mut().unwrap() += chunk_size;
+
+        // update the Links
+        node.links.push(::unixfs::PBLink {
+            Hash: Some(hash.0.to_bytes().into()),
+            Name: Some(Default::default()),
+            Tsize: Some(chunk_size + dag_size),
+        });
+    }
+
+    pub fn update(&mut self, mut bytes: &[u8]) {
+        self.len += bytes.len();
+
+        // add full chunks
+        while self.buf.len() + bytes.len() > Hash::CHUNK_SIZE {
+            // get chunk buffer
+            let chunk: Cow<[u8]> = if self.buf.is_empty() {
+                let buf = &bytes[..Hash::CHUNK_SIZE];
+                bytes = &bytes[Hash::CHUNK_SIZE..];
+                buf.into()
+            } else {
+                let bytes_len = Hash::CHUNK_SIZE - self.buf.len();
+
+                let buf = [&self.buf, &bytes[..bytes_len]].concat();
+                self.buf.clear();
+                bytes = &bytes[bytes_len..];
+                buf.into()
+            };
+
+            // insert to the leaf node
+            {
+                // read hash digest
+                let chunk_size = chunk.len() as u64;
+                let (hash, dag_size) = Hash::with_bytes_chunk(&chunk);
+
+                // get or create the leaf node
+                self.push(0, chunk_size, hash, dag_size);
+            }
+        }
+
+        // retain the unfulfilled chunk
+        self.buf.extend_from_slice(bytes);
+    }
+
+    pub fn finalize(mut self) -> Hash {
+        // if there is no DAG, then return the raw chunk's hash
+        if self.nodes.is_empty() {
+            // read hash digest
+            let (hash, _) = Hash::with_bytes_chunk(&self.buf);
+
+            // compose CID
+            return hash;
+        }
+
+        // insert the unfulfilled chunk
+        if !self.buf.is_empty() {
+            // read hash digest
+            let chunk_size = self.buf.len() as u64;
+            let (hash, dag_size) = Hash::with_bytes_chunk(&self.buf);
+
+            // get or create the leaf node
+            self.push(0, chunk_size, hash, dag_size);
+        }
+
+        // insert all subnodes
+        for sublevel in 0..self.nodes.len() - 1 {
+            let node = self.nodes.get(sublevel).unwrap();
+
+            // read hash digest
+            let chunk_size = node.data.filesize.unwrap();
+            let (hash, dag_size) = Hash::with_bytes_dag_raw(&node);
+
+            // update parent
+            self.push(sublevel + 1, chunk_size, hash, dag_size);
+        }
+
+        // read hash digest
+        let (hash, _) = Hash::with_bytes_dag_raw(&self.nodes.last().unwrap());
+
+        // compose CID
+        hash
     }
 }
