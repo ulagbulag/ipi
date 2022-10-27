@@ -136,22 +136,49 @@ impl Hash {
                     .collect(),
                 ..Default::default()
             },
-            links: bytes
-                .chunks(chunk_size)
-                .map(|chunk| {
-                    let (hash, dag_size) = Self::with_bytes_dag(chunk, sublevel);
+            links: {
+                #[cfg(target_os = "wasi")]
+                {
+                    bytes
+                        .chunks(chunk_size)
+                        .map(|chunk| Self::calculate_link(&chunk, sublevel))
+                        .collect()
+                }
 
-                    ::unixfs::PBLink {
-                        Hash: Some(hash.0.to_bytes().into()),
-                        Name: Some(Default::default()),
-                        Tsize: Some(chunk.len() as u64 + dag_size),
+                #[cfg(not(target_os = "wasi"))]
+                {
+                    if bytes.len() == Self::MAX_LINKS * chunk_size {
+                        use rayon::prelude::*;
+
+                        bytes
+                            .to_vec()
+                            .into_par_iter()
+                            .chunks(chunk_size)
+                            .map(|chunk| Self::calculate_link(&chunk, sublevel))
+                            .collect()
+                    } else {
+                        bytes
+                            .chunks(chunk_size)
+                            .map(|chunk| Self::calculate_link(&chunk, sublevel))
+                            .collect()
                     }
-                })
-                .collect(),
+                }
+            },
         };
 
         // compute CID
         Self::with_bytes_dag_raw(&node)
+    }
+
+    fn calculate_link(chunk: &[u8], sublevel: u32) -> ::unixfs::PBLink<'static> {
+        let chunk = chunk.as_ref();
+        let (hash, dag_size) = Self::with_bytes_dag(chunk, sublevel);
+
+        ::unixfs::PBLink {
+            Hash: Some(hash.0.to_bytes().into()),
+            Name: Some(Default::default()),
+            Tsize: Some(chunk.len() as u64 + dag_size),
+        }
     }
 
     fn with_bytes_dag_raw(node: &::unixfs::FlatUnixFs) -> (Self, u64) {
