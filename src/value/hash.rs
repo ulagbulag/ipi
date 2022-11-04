@@ -7,7 +7,19 @@ use cid::{
 use quick_protobuf::{MessageWrite, Writer};
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 pub struct Hash(Cid);
 
 impl PartialEq<Hash> for [u8; Hash::SIZE] {

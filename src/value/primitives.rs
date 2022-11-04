@@ -14,6 +14,8 @@ use rkyv::{Archive, Deserialize, Serialize};
     Archive,
     Serialize,
     Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]

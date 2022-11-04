@@ -3,7 +3,7 @@ use bytecheck::CheckBytes;
 use ndarray::{Dim, Dimension, Ix, IxDyn};
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, ::serde::Serialize, ::serde::Deserialize)]
 pub struct Array<A, D>(pub ::ndarray::ArcArray<A, D>)
 where
     D: Dimension;

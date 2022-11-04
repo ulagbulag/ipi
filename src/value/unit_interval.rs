@@ -4,7 +4,18 @@ use rkyv::{
     Archive, Deserialize, Fallible, Serialize,
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 pub struct UnitInterval(pub U0F32);
 
 impl<Src> From<Src> for UnitInterval

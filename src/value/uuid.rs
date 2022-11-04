@@ -3,7 +3,18 @@ use rkyv::{
     Archive, Deserialize, Fallible, Serialize,
 };
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 pub struct Uuid(pub ::uuid::Uuid);
 
 impl From<::uuid::Uuid> for Uuid {

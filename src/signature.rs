@@ -4,7 +4,7 @@ use rkyv::{ser::serializers::AllocSerializer, Archive, Deserialize, Fallible, Se
 
 pub type SignatureSerializer = AllocSerializer<64>;
 
-#[derive(Copy, Clone, Debug, Eq)]
+#[derive(Copy, Clone, Debug, Eq, ::serde::Serialize, ::serde::Deserialize)]
 pub struct Signature(pub(crate) ::ed25519_dalek::Signature);
 
 impl ::core::ops::Deref for Signature {
@@ -95,7 +95,7 @@ impl<D: Fallible + ?Sized> Deserialize<Signature, D> for <Signature as Archive>:
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq)]
+#[derive(Copy, Clone, Debug, Eq, ::serde::Serialize, ::serde::Deserialize)]
 pub struct PublicKey(pub(crate) ::ed25519_dalek::PublicKey);
 
 impl ::core::ops::Deref for PublicKey {
@@ -186,7 +186,7 @@ impl<D: Fallible + ?Sized> Deserialize<PublicKey, D> for <PublicKey as Archive>:
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, ::serde::Serialize, ::serde::Deserialize)]
 pub struct Keypair(pub(crate) ::ed25519_dalek::Keypair);
 
 impl ::core::ops::Deref for Keypair {

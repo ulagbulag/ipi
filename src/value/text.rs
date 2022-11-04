@@ -3,7 +3,17 @@ use rkyv::{ser::Serializer, string::ArchivedString, Archive, Deserialize, Fallib
 
 use super::hash::Hash;
 
-#[derive(Clone, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
 pub struct Text {
@@ -55,7 +65,7 @@ impl From<Text> for TextHash {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, ::serde::Serialize, ::serde::Deserialize)]
 pub struct LanguageTag(::language_tags::LanguageTag);
 
 impl ::core::str::FromStr for LanguageTag {

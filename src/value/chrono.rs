@@ -1,7 +1,7 @@
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
-#[derive(Copy, Clone, Debug, Eq)]
+#[derive(Copy, Clone, Debug, Eq, ::serde::Serialize, ::serde::Deserialize)]
 pub struct DateTime(pub ::chrono::DateTime<::chrono::Utc>);
 
 impl ::core::ops::Deref for DateTime {
