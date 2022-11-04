@@ -30,9 +30,13 @@ impl ::core::str::FromStr for Hash {
     }
 }
 
-impl From<&Hash> for [u8; Hash::SIZE] {
-    fn from(hash: &Hash) -> Self {
-        hash.0.to_bytes().as_slice().try_into().unwrap()
+impl TryFrom<&Hash> for [u8; Hash::SIZE] {
+    type Error = ::cid::Error;
+
+    fn try_from(hash: &Hash) -> Result<Self, Self::Error> {
+        hash.0
+            .into_v1()
+            .map(|cid| cid.to_bytes().as_slice().try_into().unwrap())
     }
 }
 
@@ -54,7 +58,10 @@ impl Archive for Hash {
 
     #[inline]
     unsafe fn resolve(&self, pos: usize, resolver: Self::Resolver, out: *mut Self::Archived) {
-        <[u8; Hash::SIZE]>::from(self).resolve(pos, resolver, out)
+        // FIXME: handle Cid parsing errors
+        <[u8; Hash::SIZE]>::try_from(self)
+            .unwrap()
+            .resolve(pos, resolver, out)
     }
 }
 
@@ -64,7 +71,10 @@ where
 {
     #[inline]
     fn serialize(&self, serializer: &mut S) -> Result<Self::Resolver, S::Error> {
-        <[u8; Hash::SIZE]>::from(self).serialize(serializer)
+        // FIXME: handle Cid parsing errors
+        <[u8; Hash::SIZE]>::try_from(self)
+            .unwrap()
+            .serialize(serializer)
     }
 }
 
