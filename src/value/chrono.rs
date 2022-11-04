@@ -84,7 +84,18 @@ impl DateTime {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 pub struct NaiveDateTime(pub ::chrono::NaiveDateTime);
 
 impl From<::chrono::NaiveDateTime> for NaiveDateTime {
@@ -168,7 +179,19 @@ impl NaiveDateTime {
 }
 
 #[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]

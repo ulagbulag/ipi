@@ -10,7 +10,16 @@ pub mod uuid;
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Archive, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Archive,
+    Serialize,
+    Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq))]
 pub enum Value {
@@ -33,7 +42,19 @@ pub enum Value {
 }
 
 #[derive(
-    Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Archive, Serialize, Deserialize,
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
 )]
 #[archive(compare(PartialEq, PartialOrd))]
 #[archive_attr(derive(CheckBytes, Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash))]

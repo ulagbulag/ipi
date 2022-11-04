@@ -48,7 +48,19 @@ impl Text {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Archive, Serialize, Deserialize)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Archive,
+    Serialize,
+    Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 #[archive(compare(PartialEq))]
 #[archive_attr(derive(CheckBytes, Debug, PartialEq, Eq, Hash))]
 pub struct TextHash {

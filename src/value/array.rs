@@ -175,7 +175,17 @@ where
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Archive, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Archive,
+    Serialize,
+    Deserialize,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+)]
 #[archive(bound(archive = "
     <Vec<A> as Archive>::Archived: ::core::fmt::Debug + PartialEq,
     <D as Archive>::Archived: ::core::fmt::Debug + PartialEq,
