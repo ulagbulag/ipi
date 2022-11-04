@@ -8,17 +8,7 @@ use quick_protobuf::{MessageWrite, Writer};
 use rkyv::{Archive, Deserialize, Fallible, Serialize};
 
 #[derive(
-    Copy,
-    Clone,
-    Debug,
-    Default,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    ::serde::Serialize,
-    ::serde::Deserialize,
+    Copy, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, ::serde::Deserialize,
 )]
 pub struct Hash(Cid);
 
@@ -97,6 +87,15 @@ impl<D: Fallible + ?Sized> Deserialize<Hash, D> for <Hash as Archive>::Archived 
             // FIXME: handle Cid parsing errors
             .map(|bytes| Cid::try_from(bytes.as_slice()).unwrap())
             .map(Hash)
+    }
+}
+
+impl ::serde::Serialize for Hash {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        ::serde::Serialize::serialize(&self.to_string(), serializer)
     }
 }
 
