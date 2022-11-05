@@ -76,8 +76,8 @@ impl<D: Fallible + ?Sized> Deserialize<DateTime, D> for <DateTime as Archive>::A
 }
 
 impl DateTime {
-    pub const MIN_DATETIME: Self = DateTime(::chrono::MIN_DATETIME);
-    pub const MAX_DATETIME: Self = DateTime(::chrono::MAX_DATETIME);
+    pub const MIN_DATETIME: Self = DateTime(::chrono::DateTime::<::chrono::Utc>::MIN_UTC);
+    pub const MAX_DATETIME: Self = DateTime(::chrono::DateTime::<::chrono::Utc>::MAX_UTC);
 
     pub fn now() -> Self {
         Self(::chrono::Utc::now())
