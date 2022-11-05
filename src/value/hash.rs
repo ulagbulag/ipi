@@ -42,9 +42,9 @@ impl TryFrom<&Hash> for [u8; Hash::SIZE] {
     }
 }
 
-impl Into<Vec<u8>> for Hash {
-    fn into(self) -> Vec<u8> {
-        self.0.to_bytes()
+impl From<Hash> for Vec<u8> {
+    fn from(value: Hash) -> Self {
+        value.0.to_bytes()
     }
 }
 
@@ -180,7 +180,7 @@ impl Hash {
                     } else {
                         bytes
                             .chunks(chunk_size)
-                            .map(|chunk| Self::calculate_link(&chunk, sublevel))
+                            .map(|chunk| Self::calculate_link(chunk, sublevel))
                             .collect()
                     }
                 }
@@ -192,7 +192,6 @@ impl Hash {
     }
 
     fn calculate_link(chunk: &[u8], sublevel: u32) -> ::unixfs::PBLink<'static> {
-        let chunk = chunk.as_ref();
         let (hash, dag_size) = Self::with_bytes_dag(chunk, sublevel);
 
         ::unixfs::PBLink {
@@ -256,7 +255,7 @@ impl Hasher {
                 if node.links.len() == Hash::MAX_LINKS {
                     // read hash digest
                     let chunk_size = node.data.filesize.unwrap();
-                    let (hash, dag_size) = Hash::with_bytes_dag_raw(&node);
+                    let (hash, dag_size) = Hash::with_bytes_dag_raw(node);
 
                     // update parent
                     self.push(sublevel + 1, chunk_size, hash, dag_size);
@@ -301,6 +300,10 @@ impl Hasher {
             Name: Some(Default::default()),
             Tsize: Some(chunk_size + dag_size),
         });
+    }
+
+    pub const fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub const fn len(&self) -> usize {
@@ -367,14 +370,14 @@ impl Hasher {
 
             // read hash digest
             let chunk_size = node.data.filesize.unwrap();
-            let (hash, dag_size) = Hash::with_bytes_dag_raw(&node);
+            let (hash, dag_size) = Hash::with_bytes_dag_raw(node);
 
             // update parent
             self.push(sublevel + 1, chunk_size, hash, dag_size);
         }
 
         // read hash digest
-        let (hash, _) = Hash::with_bytes_dag_raw(&self.nodes.last().unwrap());
+        let (hash, _) = Hash::with_bytes_dag_raw(self.nodes.last().unwrap());
 
         // compose CID
         hash
