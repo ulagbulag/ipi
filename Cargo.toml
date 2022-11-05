@@ -1,3 +1,7 @@
+[workspace]
+resolver = "2"
+members = [".", "modules/key-generator"]
+
 [package]
 name = "ipi"
 version = "0.1.0"
