@@ -162,7 +162,7 @@ impl Hash {
                 {
                     bytes
                         .chunks(chunk_size)
-                        .map(|chunk| Self::calculate_link(&chunk, sublevel))
+                        .map(|chunk| Self::calculate_link(&chunk, sublevel, is_parallel))
                         .collect()
                 }
 
