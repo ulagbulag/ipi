@@ -134,10 +134,10 @@ impl Hash {
             }
         };
 
-        Self::with_bytes_dag(bytes, level).0
+        Self::with_bytes_dag(bytes, level, false).0
     }
 
-    fn with_bytes_dag(bytes: &[u8], level: u32) -> (Self, u64) {
+    fn with_bytes_dag(bytes: &[u8], level: u32, is_parallel: bool) -> (Self, u64) {
         // solve unit chunks
         if level == 0 {
             return Self::with_bytes_chunk(bytes);
@@ -168,19 +168,19 @@ impl Hash {
 
                 #[cfg(not(target_os = "wasi"))]
                 {
-                    if bytes.len() == Self::MAX_LINKS * chunk_size {
+                    if !is_parallel && bytes.len() == Self::MAX_LINKS * chunk_size {
                         use rayon::prelude::*;
 
                         bytes
                             .to_vec()
                             .into_par_iter()
                             .chunks(chunk_size)
-                            .map(|chunk| Self::calculate_link(&chunk, sublevel))
+                            .map(|chunk| Self::calculate_link(&chunk, sublevel, true))
                             .collect()
                     } else {
                         bytes
                             .chunks(chunk_size)
-                            .map(|chunk| Self::calculate_link(chunk, sublevel))
+                            .map(|chunk| Self::calculate_link(chunk, sublevel, is_parallel))
                             .collect()
                     }
                 }
@@ -191,8 +191,8 @@ impl Hash {
         Self::with_bytes_dag_raw(&node)
     }
 
-    fn calculate_link(chunk: &[u8], sublevel: u32) -> ::unixfs::PBLink<'static> {
-        let (hash, dag_size) = Self::with_bytes_dag(chunk, sublevel);
+    fn calculate_link(chunk: &[u8], sublevel: u32, is_parallel: bool) -> ::unixfs::PBLink<'static> {
+        let (hash, dag_size) = Self::with_bytes_dag(chunk, sublevel, is_parallel);
 
         ::unixfs::PBLink {
             Hash: Some(hash.0.to_bytes().into()),
