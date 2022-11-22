@@ -7,6 +7,7 @@ pub mod text;
 pub mod unit_interval;
 pub mod uuid;
 
+use base58::ToBase58;
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -39,6 +40,29 @@ pub enum Value {
     Bytes(Vec<u8>),
     String(String),
     Text(self::text::Text),
+}
+
+impl ToString for Value {
+    fn to_string(&self) -> String {
+        match self {
+            Self::None => "()".to_string(),
+            Self::Dyn => "{}".to_string(),
+            Self::Bool(value) => value.to_string(),
+            Self::I8(value) => value.to_string(),
+            Self::I16(value) => value.to_string(),
+            Self::I32(value) => value.to_string(),
+            Self::I64(value) => value.to_string(),
+            Self::U8(value) => value.to_string(),
+            Self::U16(value) => value.to_string(),
+            Self::U32(value) => value.to_string(),
+            Self::U64(value) => value.to_string(),
+            Self::F32(value) => value.to_string(),
+            Self::F64(value) => value.to_string(),
+            Self::Bytes(value) => value.to_base58(),
+            Self::String(value) => value.to_string(),
+            Self::Text(value) => value.to_string(),
+        }
+    }
 }
 
 #[derive(
