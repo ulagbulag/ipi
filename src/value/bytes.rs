@@ -7,6 +7,7 @@ use rkyv::{Archive, Deserialize, Serialize};
 #[derive(
     Clone,
     Debug,
+    Default,
     PartialEq,
     Archive,
     Serialize,
