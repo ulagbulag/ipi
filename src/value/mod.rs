@@ -1,4 +1,5 @@
 pub mod array;
+pub mod bytes;
 pub mod chrono;
 pub mod hash;
 pub mod nonce;
@@ -7,7 +8,6 @@ pub mod text;
 pub mod unit_interval;
 pub mod uuid;
 
-use base58::ToBase58;
 use bytecheck::CheckBytes;
 use rkyv::{Archive, Deserialize, Serialize};
 
@@ -37,8 +37,7 @@ pub enum Value {
     U64(u64),
     F32(f32),
     F64(f64),
-    Bytes(Vec<u8>),
-    String(String),
+    Bytes(self::bytes::Bytes),
     Text(self::text::Text),
 }
 
@@ -58,8 +57,7 @@ impl ToString for Value {
             Self::U64(value) => value.to_string(),
             Self::F32(value) => value.to_string(),
             Self::F64(value) => value.to_string(),
-            Self::Bytes(value) => value.to_base58(),
-            Self::String(value) => value.to_string(),
+            Self::Bytes(value) => value.to_string(),
             Self::Text(value) => value.to_string(),
         }
     }
@@ -97,6 +95,5 @@ pub enum ValueType {
     F32,
     F64,
     Bytes,
-    String,
     Text,
 }
